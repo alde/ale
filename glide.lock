@@ -1,5 +1,5 @@
-hash: d983fc25b7f013971eaf912b725002c437571b5bf36a6bc8844f0f441dfb93df
-updated: 2019-01-18T11:28:34.738227+01:00
+hash: b86a06ae1c4d1144851896fb7d1100a6c42048ffb1e0335379ed3ca96c764b98
+updated: 2019-01-18T13:33:01.188545+01:00
 imports:
 - name: github.com/beorn7/perks
   version: 4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9
@@ -11,6 +11,8 @@ imports:
   version: 1643683e1b54a9e88ad26d98f81400c8c9d9f4f9
   subpackages:
   - proto
+- name: github.com/google/uuid
+  version: 9b3b1e0f5f99ae461456d768e7d301a7acdaa2d8
 - name: github.com/gorilla/context
   version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
 - name: github.com/gorilla/mux

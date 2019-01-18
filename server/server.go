@@ -38,7 +38,7 @@ func routes(h *Handler) []route {
 			Name:    "PostBuild",
 			Method:  "POST",
 			Pattern: "/api/v1/process",
-			Handler: h.ProcessBuild(),
+			Handler: h.ProcessBuild(h.config),
 		},
 		{
 			Name:    "GetBuild",
