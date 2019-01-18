@@ -1,0 +1,160 @@
+{
+  "_links": {
+    "self": {
+      "href": "/job/tingle/261/wfapi/describe"
+    },
+    "artifacts": {
+      "href": "/job/tingle/261/wfapi/artifacts"
+    }
+  },
+  "id": "261",
+  "name": "#261 - pipedream/styx-audit-monitoring - refs/pull/18969/merge",
+  "status": "SUCCESS",
+  "startTimeMillis": 1547793659809,
+  "endTimeMillis": 1547793787635,
+  "durationMillis": 127826,
+  "queueDurationMillis": 6,
+  "pauseDurationMillis": 0,
+  "stages": [
+    {
+      "_links": {
+        "self": {
+          "href": "/job/tingle/261/execution/node/17/wfapi/describe"
+        }
+      },
+      "id": "17",
+      "name": "Preparation",
+      "execNode": "",
+      "status": "SUCCESS",
+      "startTimeMillis": 1547793660680,
+      "durationMillis": 2475,
+      "pauseDurationMillis": 0
+    },
+    {
+      "_links": {
+        "self": {
+          "href": "/job/tingle/261/execution/node/24/wfapi/describe"
+        }
+      },
+      "id": "24",
+      "name": "Checkout",
+      "execNode": "",
+      "status": "SUCCESS",
+      "startTimeMillis": 1547793663376,
+      "durationMillis": 2715,
+      "pauseDurationMillis": 0
+    },
+    {
+      "_links": {
+        "self": {
+          "href": "/job/tingle/261/execution/node/31/wfapi/describe"
+        }
+      },
+      "id": "31",
+      "name": "Converge state",
+      "execNode": "",
+      "status": "SUCCESS",
+      "startTimeMillis": 1547793666109,
+      "durationMillis": 173,
+      "pauseDurationMillis": 0
+    },
+    {
+      "_links": {
+        "self": {
+          "href": "/job/tingle/261/execution/node/37/wfapi/describe"
+        }
+      },
+      "id": "37",
+      "name": "Update .dockerignore",
+      "execNode": "",
+      "status": "SUCCESS",
+      "startTimeMillis": 1547793666296,
+      "durationMillis": 853,
+      "pauseDurationMillis": 0
+    },
+    {
+      "_links": {
+        "self": {
+          "href": "/job/tingle/261/execution/node/42/wfapi/describe"
+        }
+      },
+      "id": "42",
+      "name": "Preparing Pipelines",
+      "execNode": "",
+      "status": "SUCCESS",
+      "startTimeMillis": 1547793667208,
+      "durationMillis": 21602,
+      "pauseDurationMillis": 0
+    },
+    {
+      "_links": {
+        "self": {
+          "href": "/job/tingle/261/execution/node/53/wfapi/describe"
+        }
+      },
+      "id": "53",
+      "name": "Downloading cache",
+      "execNode": "",
+      "status": "SUCCESS",
+      "startTimeMillis": 1547793688823,
+      "durationMillis": 19056,
+      "pauseDurationMillis": 0
+    },
+    {
+      "_links": {
+        "self": {
+          "href": "/job/tingle/261/execution/node/61/wfapi/describe"
+        }
+      },
+      "id": "61",
+      "name": "Build",
+      "execNode": "",
+      "status": "SUCCESS",
+      "startTimeMillis": 1547793707901,
+      "durationMillis": 30012,
+      "pauseDurationMillis": 0
+    },
+    {
+      "_links": {
+        "self": {
+          "href": "/job/tingle/261/execution/node/76/wfapi/describe"
+        }
+      },
+      "id": "76",
+      "name": "Uploading cache",
+      "execNode": "",
+      "status": "SUCCESS",
+      "startTimeMillis": 1547793737927,
+      "durationMillis": 25363,
+      "pauseDurationMillis": 0
+    },
+    {
+      "_links": {
+        "self": {
+          "href": "/job/tingle/261/execution/node/85/wfapi/describe"
+        }
+      },
+      "id": "85",
+      "name": "Build reports",
+      "execNode": "",
+      "status": "SUCCESS",
+      "startTimeMillis": 1547793763308,
+      "durationMillis": 23687,
+      "pauseDurationMillis": 0
+    },
+    {
+      "_links": {
+        "self": {
+          "href": "/job/tingle/261/execution/node/180/wfapi/describe"
+        }
+      },
+      "id": "180",
+      "name": "Cleanup",
+      "execNode": "",
+      "status": "SUCCESS",
+      "startTimeMillis": 1547793787007,
+      "durationMillis": 543,
+      "pauseDurationMillis": 0
+    }
+  ]
+}

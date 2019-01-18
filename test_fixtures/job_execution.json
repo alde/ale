@@ -1,0 +1,20 @@
+{
+  "_links": {
+    "self": {
+      "href": "/job/tingle/261/execution/node/181/wfapi/describe"
+    },
+    "log": {
+      "href": "/job/tingle/261/execution/node/181/wfapi/log"
+    }
+  },
+  "id": "181",
+  "name": "Delete workspace when build is done",
+  "execNode": "",
+  "status": "SUCCESS",
+  "startTimeMillis": 1547793787013,
+  "durationMillis": 10,
+  "pauseDurationMillis": 0,
+  "parentNodes": [
+    "180"
+  ]
+}

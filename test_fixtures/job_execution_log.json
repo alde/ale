@@ -1,0 +1,8 @@
+{
+  "nodeId": "183",
+  "nodeStatus": "SUCCESS",
+  "length": 381,
+  "hasMore": false,
+  "text": "<span class=\"timestamp\"><b>06:43:07</b> </span><style>.timestamper-plain-text {visibility: hidden;}</style>Removing secrets dir during cleanup phase\n",
+  "consoleUrl": "/job/tingle/261/execution/node/183/log"
+}
