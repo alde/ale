@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"sort"
+	"strings"
 	"time"
 
 	"github.com/Sirupsen/logrus"
@@ -13,8 +15,10 @@ import (
 	"github.com/kardianos/osext"
 )
 
+// CrawlJenkins initiates the crawler
 func CrawlJenkins(conf *config.Config, buildURI string, buildID string) {
-	uri, _ := JobURLToAPI(buildURI)
+	uri0 := strings.Join([]string{strings.TrimRight(buildURI, "/"), "wfapi", "describe"}, "/")
+	uri, _ := url.Parse(uri0)
 	processChan := make(chan string, 1)
 	stateChan := make(chan *JenkinsData, 1)
 	go updateState(stateChan, processChan, conf, buildID)
@@ -58,7 +62,7 @@ func crawlBuild(processChan <-chan string, stateChan chan<- *JenkinsData, uri *u
 			body, err := ioutil.ReadAll(resp.Body)
 			err = json.Unmarshal(body, &jd)
 			logrus.WithField("uri", uri.String()).Info("crawling jenkins API")
-			jdata := ExtractLogs(jd, buildID, uri)
+			jdata := extractLogs(jd, buildID, uri)
 			logrus.Info("extracted jenkins data")
 			stateChan <- jdata
 			logrus.Debug("sent data to stateChannel")
@@ -154,4 +158,24 @@ func extractLogsFromExecution(execution *JobExecution, buildURL *url.URL) []*Jen
 		return crawlStageFlowNodesLogs(execution, buildURL)
 	}
 	return crawlExecutionLogs(execution, buildURL)
+}
+
+func extractLogs(jd *JobData, buildID string, buildURL *url.URL) *JenkinsData {
+	var stages []*JenkinsStage
+	for _, stage := range jd.Stages {
+		execution := crawlJobStage(buildURL, stage.Links.Self.Href)
+		stages = append(stages, extractLogsFromExecution(&execution, buildURL)...)
+	}
+
+	sort.Slice(stages[:], func(i, j int) bool {
+		return stages[i].StartTime < stages[j].StartTime
+	})
+
+	return &JenkinsData{
+		Status:  jd.Status,
+		Name:    jd.Name,
+		ID:      jd.ID,
+		BuildID: buildID,
+		Stages:  stages,
+	}
 }
