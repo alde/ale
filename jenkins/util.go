@@ -15,20 +15,20 @@ func JobURLToAPI(jobURL string) (*url.URL, error) {
 // ExtractLogs extracts logs
 func ExtractLogs(jd *JobData, buildID string, buildURL *url.URL) *JenkinsData {
 	var stages []*JenkinsStage
-	jdata := &JenkinsData{}
-	for jdata.Status == "IN_PROGRESS" || jdata.Status == "" {
-		for _, stage := range jd.Stages {
-			execution := crawlJobStage(buildURL, stage.Links.Self.Href)
-			stages = append(stages, extractLogsFromExecution(&execution, buildURL)...)
-		}
-		jdata.Status = jd.Status
-		jdata.Name = jd.Name
-		jdata.ID = jd.ID
-		jdata.BuildID = buildID
+	for _, stage := range jd.Stages {
+		execution := crawlJobStage(buildURL, stage.Links.Self.Href)
+		stages = append(stages, extractLogsFromExecution(&execution, buildURL)...)
 	}
+
 	sort.Slice(stages[:], func(i, j int) bool {
 		return stages[i].StartTime < stages[j].StartTime
 	})
-	jdata.Stages = stages
-	return jdata
+
+	return &JenkinsData{
+		Status:  jd.Status,
+		Name:    jd.Name,
+		ID:      jd.ID,
+		BuildID: buildID,
+		Stages:  stages,
+	}
 }

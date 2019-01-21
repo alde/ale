@@ -71,7 +71,9 @@ func (h *Handler) ProcessBuild(conf *config.Config) http.HandlerFunc {
 		response := &ProcessResponse{
 			Location: url,
 		}
-		go jenkins.CrawlJenkins(conf, request.BuildURL, request.BuildID)
+		go func() {
+			jenkins.CrawlJenkins(conf, request.BuildURL, request.BuildID)
+		}()
 		writeJSON(http.StatusCreated, response, w)
 		return
 	}

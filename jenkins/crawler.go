@@ -15,30 +15,40 @@ import (
 
 func CrawlJenkins(conf *config.Config, buildURI string, buildID string) {
 	uri, _ := JobURLToAPI(buildURI)
-	processChan := make(chan bool)
-	stateChan := make(chan *JenkinsData)
-	go updateState(stateChan, conf, buildID)
-	go crawlBuild(processChan, stateChan, uri, buildID)
-	processChan <- true
+	processChan := make(chan string, 1)
+	stateChan := make(chan *JenkinsData, 1)
+	go updateState(stateChan, processChan, conf, buildID)
+	go crawlBuild(processChan, stateChan, uri)
+	processChan <- buildID
 }
 
-func updateState(stateChan <-chan *JenkinsData, conf *config.Config, buildID string) {
+func updateState(stateChan <-chan *JenkinsData, processChan chan<- string, conf *config.Config, buildID string) {
 	for {
 		select {
 		case jdata := <-stateChan:
-			logrus.Infof("%+v", jdata)
+			logrus.Debug("got request to update the state")
 			b, _ := json.MarshalIndent(jdata, "", "\t")
 			folder, _ := osext.ExecutableFolder()
-			ioutil.WriteFile(fmt.Sprintf("%s/out_%s.json", folder, buildID), b, 0644)
-			logrus.Infof("%s", string(b))
+			err := ioutil.WriteFile(fmt.Sprintf("%s/out_%s.json", folder, buildID), b, 0644)
+			if err != nil {
+				logrus.Error(err)
+			}
+			logrus.WithField("status", jdata.Status).Debug("jenkins job status")
+			if jdata.Status == "" || jdata.Status == "IN_PROGRESS" {
+				go func() {
+					logrus.Debug("sleeping for 5 seconds before requerying")
+					time.Sleep(5 * time.Second)
+					processChan <- buildID
+				}()
+			}
 		}
 	}
 }
 
-func crawlBuild(processChan chan bool, stateChan chan<- *JenkinsData, uri *url.URL, buildID string) {
+func crawlBuild(processChan <-chan string, stateChan chan<- *JenkinsData, uri *url.URL) {
 	for {
 		select {
-		case <-processChan:
+		case buildID := <-processChan:
 			jd := &JobData{}
 			resp, err := http.Get(uri.String())
 			if err != nil {
@@ -49,12 +59,9 @@ func crawlBuild(processChan chan bool, stateChan chan<- *JenkinsData, uri *url.U
 			err = json.Unmarshal(body, &jd)
 			logrus.WithField("uri", uri.String()).Info("crawling jenkins API")
 			jdata := ExtractLogs(jd, buildID, uri)
+			logrus.Info("extracted jenkins data")
 			stateChan <- jdata
-			if jdata.Status == "" || jdata.Status == "IN_PROGRESS" {
-				for range time.Tick(5 * time.Second) {
-					processChan <- true
-				}
-			}
+			logrus.Debug("sent data to stateChannel")
 		}
 	}
 
