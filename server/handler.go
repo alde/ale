@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/alde/ale/config"
+	"github.com/alde/ale/jenkins"
 	"github.com/alde/ale/version"
 	"github.com/google/uuid"
 )
@@ -70,6 +71,7 @@ func (h *Handler) ProcessBuild(conf *config.Config) http.HandlerFunc {
 		response := &ProcessResponse{
 			Location: url,
 		}
+		go jenkins.CrawlJenkins(conf, request.BuildURL, request.BuildID)
 		writeJSON(http.StatusCreated, response, w)
 		return
 	}
