@@ -11,6 +11,8 @@ import (
 	"github.com/alde/ale/jenkins"
 	"github.com/alde/ale/version"
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
+	"github.com/kardianos/osext"
 )
 
 // Handler holds the server context
@@ -82,6 +84,21 @@ func (h *Handler) ProcessBuild(conf *config.Config) http.HandlerFunc {
 // GetJenkinsBuild returns data about the given build
 func (h *Handler) GetJenkinsBuild() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		writeJSON(http.StatusNotImplemented, "Method not implemented yet", w)
+		vars := mux.Vars(r)
+		buildID := vars["id"]
+		folder, _ := osext.ExecutableFolder()
+		file := fmt.Sprintf("%s/out_%s.json", folder, buildID)
+		b, err := ioutil.ReadFile(file)
+		if err != nil {
+			writeJSON(http.StatusInternalServerError, err, w)
+			return
+		}
+		var resp jenkins.JenkinsData
+		err = json.Unmarshal(b, &resp)
+		if err != nil {
+			writeJSON(http.StatusInternalServerError, err, w)
+			return
+		}
+		writeJSON(http.StatusOK, resp, w)
 	}
 }

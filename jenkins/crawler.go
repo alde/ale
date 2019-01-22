@@ -33,10 +33,12 @@ func updateState(stateChan <-chan *JenkinsData, processChan chan<- string, conf 
 			logrus.Debug("got request to update the state")
 			b, _ := json.MarshalIndent(jdata, "", "\t")
 			folder, _ := osext.ExecutableFolder()
-			err := ioutil.WriteFile(fmt.Sprintf("%s/out_%s.json", folder, buildID), b, 0644)
+			file := fmt.Sprintf("%s/out_%s.json", folder, buildID)
+			err := ioutil.WriteFile(file, b, 0644)
 			if err != nil {
 				logrus.Error(err)
 			}
+			logrus.WithField("file", file).Debug("file written")
 			logrus.WithField("status", jdata.Status).Debug("jenkins job status")
 			if jdata.Status == "" || jdata.Status == "IN_PROGRESS" {
 				go func() {
@@ -77,7 +79,6 @@ func crawlJobStage(buildURL *url.URL, link string) JobExecution {
 		Host:   buildURL.Host,
 		Path:   link,
 	}
-	logrus.WithField("uri", stageLink.String()).Info("crawling jenkins API")
 	resp, err := http.Get(stageLink.String())
 	if err != nil {
 		logrus.Error(err)
