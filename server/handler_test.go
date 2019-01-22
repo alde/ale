@@ -16,7 +16,7 @@ func Test_ServiceMetadata(t *testing.T) {
 	m := mux.NewRouter()
 	config := &config.Config{}
 
-	h := NewHandler(config)
+	h := NewHandler(config, mockDatabase)
 	m.HandleFunc("/service-metadata", h.ServiceMetadata())
 	wr := httptest.NewRecorder()
 
@@ -30,7 +30,7 @@ func Test_ServiceMetadata(t *testing.T) {
 	assert.Nil(t, err)
 
 	expectedKeys := []string{
-		"service_name", "service_version", "description", "owner", "gcsbucket",
+		"service_name", "service_version", "description", "owner", "database",
 	}
 
 	for _, k := range expectedKeys {

@@ -15,7 +15,7 @@ func Test_DefaultConfig(t *testing.T) {
 	assert.Equal(c.Port, 7654)
 	assert.Equal(c.LogFormat, "text")
 	assert.Equal(c.LogLevel, "debug")
-	assert.Equal(c.Bucket, "")
+	assert.Equal(c.Database.Type, "file")
 	assert.Equal(c.Owner, os.Getenv("USER"))
 
 }
@@ -28,7 +28,6 @@ func Test_ReadEnvironment(t *testing.T) {
 	os.Setenv("ALE_PORT", "9090")
 	os.Setenv("ALE_LOGLEVEL", "error")
 	os.Setenv("ALE_LOGFORMAT", "json")
-	os.Setenv("ALE_GCSBUCKET", "testbucket")
 	os.Setenv("ALE_OWNER", "the_boss")
 
 	ReadEnvironment(c)
@@ -37,7 +36,6 @@ func Test_ReadEnvironment(t *testing.T) {
 	os.Unsetenv("ALE_PORT")
 	os.Unsetenv("ALE_LOGLEVEL")
 	os.Unsetenv("ALE_LOGFORMAT")
-	os.Unsetenv("ALE_GCSBUCKET")
 	os.Unsetenv("ALE_OWNER")
 
 	assert.Equal(c.Address, "10.0.0.0")
@@ -45,7 +43,6 @@ func Test_ReadEnvironment(t *testing.T) {
 	assert.Equal(c.LogFormat, "json")
 	assert.Equal(c.LogLevel, "error")
 	assert.Equal(c.Owner, "the_boss")
-	assert.Equal(c.Bucket, "testbucket")
 }
 
 func Test_ReadConfigFile(t *testing.T) {
@@ -59,7 +56,8 @@ func Test_ReadConfigFile(t *testing.T) {
 	assert.Equal(c.LogFormat, "json")
 	assert.Equal(c.LogLevel, "info")
 	assert.Equal(c.Owner, "the_team")
-	assert.Equal(c.Bucket, "testbucket")
+	assert.Equal(c.Database.Type, "datastore")
+	assert.Equal(c.Database.Project, "my-gcs-project")
 }
 
 func Test_ReadConfigFile_Error(t *testing.T) {

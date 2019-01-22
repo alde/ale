@@ -11,35 +11,29 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
+
+	"github.com/alde/ale"
 	"github.com/alde/ale/config"
-	"github.com/kardianos/osext"
+	"github.com/alde/ale/db"
 )
 
 // CrawlJenkins initiates the crawler
-func CrawlJenkins(conf *config.Config, buildURI string, buildID string) {
+func CrawlJenkins(conf *config.Config, db db.Database, buildURI string, buildID string) {
 	uri0 := strings.Join([]string{strings.TrimRight(buildURI, "/"), "wfapi", "describe"}, "/")
 	uri, _ := url.Parse(uri0)
 	processChan := make(chan string, 1)
-	stateChan := make(chan *JenkinsData, 1)
-	go updateState(stateChan, processChan, conf, buildID)
+	stateChan := make(chan *ale.JenkinsData, 1)
+	go updateState(stateChan, processChan, db, buildID)
 	go crawlBuild(processChan, stateChan, uri)
 	processChan <- buildID
 }
 
-func updateState(stateChan <-chan *JenkinsData, processChan chan<- string, conf *config.Config, buildID string) {
+func updateState(stateChan <-chan *ale.JenkinsData, processChan chan<- string, db db.Database, buildID string) {
 	for {
 		select {
 		case jdata := <-stateChan:
 			logrus.Debug("got request to update the state")
-			b, _ := json.MarshalIndent(jdata, "", "\t")
-			folder, _ := osext.ExecutableFolder()
-			file := fmt.Sprintf("%s/out_%s.json", folder, buildID)
-			err := ioutil.WriteFile(file, b, 0644)
-			if err != nil {
-				logrus.Error(err)
-			}
-			logrus.WithField("file", file).Debug("file written")
-			logrus.WithField("status", jdata.Status).Debug("jenkins job status")
+			db.Put(jdata, buildID)
 			if jdata.Status == "" || jdata.Status == "IN_PROGRESS" {
 				go func() {
 					logrus.Debug("sleeping for 5 seconds before requerying")
@@ -51,11 +45,11 @@ func updateState(stateChan <-chan *JenkinsData, processChan chan<- string, conf 
 	}
 }
 
-func crawlBuild(processChan <-chan string, stateChan chan<- *JenkinsData, uri *url.URL) {
+func crawlBuild(processChan <-chan string, stateChan chan<- *ale.JenkinsData, uri *url.URL) {
 	for {
 		select {
 		case buildID := <-processChan:
-			jd := &JobData{}
+			jd := &ale.JobData{}
 			resp, err := http.Get(uri.String())
 			if err != nil {
 				logrus.Error(err)
@@ -73,7 +67,7 @@ func crawlBuild(processChan <-chan string, stateChan chan<- *JenkinsData, uri *u
 
 }
 
-func crawlJobStage(buildURL *url.URL, link string) JobExecution {
+func crawlJobStage(buildURL *url.URL, link string) ale.JobExecution {
 	stageLink := &url.URL{
 		Scheme: buildURL.Scheme,
 		Host:   buildURL.Host,
@@ -85,7 +79,7 @@ func crawlJobStage(buildURL *url.URL, link string) JobExecution {
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
-	var JobExecution JobExecution
+	var JobExecution ale.JobExecution
 	err = json.Unmarshal(body, &JobExecution)
 	if err != nil {
 		logrus.Error(err)
@@ -93,15 +87,15 @@ func crawlJobStage(buildURL *url.URL, link string) JobExecution {
 	return JobExecution
 }
 
-func crawlExecutionLogs(execution *JobExecution, buildURL *url.URL) []*JenkinsStage {
+func crawlExecutionLogs(execution *ale.JobExecution, buildURL *url.URL) []*ale.JenkinsStage {
 	logLink := &url.URL{
 		Scheme: buildURL.Scheme,
 		Host:   buildURL.Host,
 		Path:   execution.Links.Log.Href,
 	}
 	nodeLog := extractNodeLogs(logLink)
-	return []*JenkinsStage{
-		&JenkinsStage{
+	return []*ale.JenkinsStage{
+		{
 			Status:    nodeLog.NodeStatus,
 			Name:      execution.Name,
 			LogLength: nodeLog.Length,
@@ -111,14 +105,14 @@ func crawlExecutionLogs(execution *JobExecution, buildURL *url.URL) []*JenkinsSt
 	}
 }
 
-func extractLogsFromFlowNode(node *StageFlowNode, buildURL *url.URL, ename string) *JenkinsStage {
+func extractLogsFromFlowNode(node *ale.StageFlowNode, buildURL *url.URL, ename string) *ale.JenkinsStage {
 	logLink := &url.URL{
 		Scheme: buildURL.Scheme,
 		Host:   buildURL.Host,
 		Path:   node.Links.Log.Href,
 	}
 	nodeLog := extractNodeLogs(logLink)
-	return &JenkinsStage{
+	return &ale.JenkinsStage{
 		Status:    nodeLog.NodeStatus,
 		Name:      fmt.Sprintf("%s - %s", ename, node.Name),
 		LogLength: nodeLog.Length,
@@ -127,7 +121,7 @@ func extractLogsFromFlowNode(node *StageFlowNode, buildURL *url.URL, ename strin
 	}
 }
 
-func extractNodeLogs(logLink *url.URL) *NodeLog {
+func extractNodeLogs(logLink *url.URL) *ale.NodeLog {
 	logrus.WithField("uri", logLink.String()).Info("crawling jenkins API")
 	resp, err := http.Get(logLink.String())
 	if err != nil {
@@ -135,7 +129,7 @@ func extractNodeLogs(logLink *url.URL) *NodeLog {
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
-	var nodeLog NodeLog
+	var nodeLog ale.NodeLog
 	err = json.Unmarshal(body, &nodeLog)
 	if err != nil {
 		logrus.Error(err)
@@ -143,8 +137,8 @@ func extractNodeLogs(logLink *url.URL) *NodeLog {
 	return &nodeLog
 }
 
-func crawlStageFlowNodesLogs(execution *JobExecution, buildURL *url.URL) []*JenkinsStage {
-	logs := []*JenkinsStage{}
+func crawlStageFlowNodesLogs(execution *ale.JobExecution, buildURL *url.URL) []*ale.JenkinsStage {
+	logs := []*ale.JenkinsStage{}
 	for _, node := range execution.StageFlowNodes {
 		if node.Links.Log.Href == "" {
 			continue
@@ -154,15 +148,15 @@ func crawlStageFlowNodesLogs(execution *JobExecution, buildURL *url.URL) []*Jenk
 	return logs
 }
 
-func extractLogsFromExecution(execution *JobExecution, buildURL *url.URL) []*JenkinsStage {
+func extractLogsFromExecution(execution *ale.JobExecution, buildURL *url.URL) []*ale.JenkinsStage {
 	if execution.Links.Log.Href == "" {
 		return crawlStageFlowNodesLogs(execution, buildURL)
 	}
 	return crawlExecutionLogs(execution, buildURL)
 }
 
-func extractLogs(jd *JobData, buildID string, buildURL *url.URL) *JenkinsData {
-	var stages []*JenkinsStage
+func extractLogs(jd *ale.JobData, buildID string, buildURL *url.URL) *ale.JenkinsData {
+	var stages []*ale.JenkinsStage
 	for _, stage := range jd.Stages {
 		execution := crawlJobStage(buildURL, stage.Links.Self.Href)
 		stages = append(stages, extractLogsFromExecution(&execution, buildURL)...)
@@ -172,7 +166,7 @@ func extractLogs(jd *JobData, buildID string, buildURL *url.URL) *JenkinsData {
 		return stages[i].StartTime < stages[j].StartTime
 	})
 
-	return &JenkinsData{
+	return &ale.JenkinsData{
 		Status:  jd.Status,
 		Name:    jd.Name,
 		ID:      jd.ID,

@@ -1,6 +1,15 @@
-hash: b86a06ae1c4d1144851896fb7d1100a6c42048ffb1e0335379ed3ca96c764b98
-updated: 2019-01-18T13:33:01.188545+01:00
+hash: 91de30db7ad4ff1bffe58f38d0fa1d63e6fc64b4cf0112a4241e9dd0835c696c
+updated: 2019-01-22T11:51:16.140022+01:00
 imports:
+- name: cloud.google.com/go
+  version: 0ebda48a7f143b1cce9eb37a8c1106ac762a3430
+  subpackages:
+  - compute/metadata
+  - datastore
+  - internal
+  - internal/fields
+  - internal/trace
+  - internal/version
 - name: github.com/beorn7/perks
   version: 4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9
   subpackages:
@@ -8,11 +17,23 @@ imports:
 - name: github.com/braintree/manners
   version: 0b5e6b2c2843f4c83c2a40f96980b09cf4af733c
 - name: github.com/golang/protobuf
-  version: 1643683e1b54a9e88ad26d98f81400c8c9d9f4f9
+  version: aa810b61a9c79d51363740d207bb46cf8e620ed5
   subpackages:
   - proto
+  - protoc-gen-go
+  - protoc-gen-go/descriptor
+  - ptypes
+  - ptypes/any
+  - ptypes/duration
+  - ptypes/struct
+  - ptypes/timestamp
+  - ptypes/wrappers
 - name: github.com/google/uuid
   version: 9b3b1e0f5f99ae461456d768e7d301a7acdaa2d8
+- name: github.com/googleapis/gax-go
+  version: ddfab93c3faef4935403ac75a7c11f0e731dc181
+  subpackages:
+  - v2
 - name: github.com/gorilla/context
   version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
 - name: github.com/gorilla/mux
@@ -46,15 +67,120 @@ imports:
   - xfs
 - name: github.com/Sirupsen/logrus
   version: f006c2ac4710855cf0f916dd6b77acf6b048dc6e
+- name: go.opencensus.io
+  version: 2f39cd45ab48b7dc7e5b0d7393bae371e201b1c4
+  subpackages:
+  - exemplar
+  - internal
+  - internal/tagencoding
+  - plugin/ocgrpc
+  - stats
+  - stats/internal
+  - stats/view
+  - tag
+  - trace
+  - trace/internal
+  - trace/propagation
+  - trace/tracestate
 - name: golang.org/x/crypto
   version: 6a293f2d4b14b8e6d3f0539e383f6d0d30fce3fd
   subpackages:
   - ssh/terminal
+- name: golang.org/x/net
+  version: a337091b0525af65de94df2eb7e98bd9962dcbe2
+  subpackages:
+  - context
+  - context/ctxhttp
+  - http2
+  - http2/hpack
+  - idna
+  - internal/timeseries
+  - lex/httplex
+  - trace
+- name: golang.org/x/oauth2
+  version: 5dab4167f31cbd76b407f1486c86b40748bc5073
+  subpackages:
+  - google
+  - internal
+  - jws
+  - jwt
 - name: golang.org/x/sys
   version: 4b45465282a4624cf39876842a017334f13b8aff
   subpackages:
   - unix
   - windows
+- name: golang.org/x/text
+  version: e6919f6577db79269a6443b9dc46d18f2238fb5d
+  subpackages:
+  - secure/bidirule
+  - transform
+  - unicode/bidi
+  - unicode/norm
+- name: google.golang.org/api
+  version: c96cd22f2b6d8d3be1fb20eeb03741be903cb3d5
+  subpackages:
+  - googleapi
+  - googleapi/internal/uritemplates
+  - internal
+  - iterator
+  - option
+  - transport/grpc
+- name: google.golang.org/appengine
+  version: 170382fa85b10b94728989dfcf6cc818b335c952
+  subpackages:
+  - internal
+  - internal/app_identity
+  - internal/base
+  - internal/datastore
+  - internal/log
+  - internal/modules
+  - internal/remote_api
+  - internal/socket
+  - internal/urlfetch
+  - socket
+  - urlfetch
+- name: google.golang.org/genproto
+  version: db91494dd46c1fdcbbde05e5ff5eb56df8f7d79a
+  subpackages:
+  - googleapis/api/annotations
+  - googleapis/datastore/v1
+  - googleapis/rpc/code
+  - googleapis/rpc/status
+  - googleapis/type/latlng
+- name: google.golang.org/grpc
+  version: ec9c18c8c6dda21490f4840e9c9946d883fd3037
+  subpackages:
+  - balancer
+  - balancer/base
+  - balancer/roundrobin
+  - binarylog/grpc_binarylog_v1
+  - codes
+  - connectivity
+  - credentials
+  - credentials/internal
+  - credentials/oauth
+  - encoding
+  - encoding/proto
+  - grpclog
+  - internal
+  - internal/backoff
+  - internal/binarylog
+  - internal/channelz
+  - internal/envconfig
+  - internal/grpcrand
+  - internal/grpcsync
+  - internal/syscall
+  - internal/transport
+  - keepalive
+  - metadata
+  - naming
+  - peer
+  - resolver
+  - resolver/dns
+  - resolver/passthrough
+  - stats
+  - status
+  - tap
 - name: gopkg.in/yaml.v2
   version: 51d6538a90f86fe93ac480b35f37b2be17fef232
 testImports:

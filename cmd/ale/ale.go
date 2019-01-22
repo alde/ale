@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/signal"
 
 	"github.com/alde/ale/config"
+	"github.com/alde/ale/db"
 	"github.com/alde/ale/server"
 	"github.com/alde/ale/version"
 
@@ -23,6 +25,8 @@ func main() {
 
 	cfg := config.Initialize("") // TODO: --config <file> to read file path from commandline
 	setupLogging(cfg)
+	ctx := context.Background()
+	database := setupDatabase(ctx, cfg)
 
 	bind := fmt.Sprintf("%s:%d", cfg.Address, cfg.Port)
 	logrus.WithFields(logrus.Fields{
@@ -30,10 +34,17 @@ func main() {
 		"address": cfg.Address,
 		"port":    cfg.Port,
 	}).Info("Launching ALE")
-	router := server.NewRouter(cfg)
+	router := server.NewRouter(cfg, database)
 	if err := manners.ListenAndServe(bind, router); err != nil {
 		logrus.WithError(err).Fatal("Unrecoverable error!")
 	}
+}
+
+func setupDatabase(ctx context.Context, cfg *config.Config) db.Database {
+	if cfg.Database.Type == "datastore" {
+		return db.NewDatastore(ctx, cfg)
+	}
+	return db.NewFilestore(ctx, cfg)
 }
 
 func setupLogging(cfg *config.Config) {

@@ -1,4 +1,4 @@
-package jenkins
+package ale
 
 type Link struct {
 	Href string `json:"href"`

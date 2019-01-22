@@ -7,22 +7,24 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/alde/ale/db"
+
 	"github.com/alde/ale/config"
 	"github.com/alde/ale/jenkins"
 	"github.com/alde/ale/version"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
-	"github.com/kardianos/osext"
 )
 
 // Handler holds the server context
 type Handler struct {
-	config *config.Config
+	config   *config.Config
+	database db.Database
 }
 
 // NewHandler createss a new HTTP handler
-func NewHandler(cfg *config.Config) *Handler {
-	return &Handler{config: cfg}
+func NewHandler(cfg *config.Config, db db.Database) *Handler {
+	return &Handler{config: cfg, database: db}
 }
 
 // ServiceMetadata displays hopefully useful information about the service
@@ -34,7 +36,7 @@ func (h *Handler) ServiceMetadata() http.HandlerFunc {
 		data["description"] = "Jenkins Build Information"
 		data["service_name"] = "ale"
 		data["service_version"] = version.Version
-		data["gcsbucket"] = h.config.Bucket
+		data["database"] = h.config.Database.Type
 
 		writeJSON(http.StatusOK, data, w)
 	}
@@ -52,7 +54,7 @@ type ProcessResponse struct {
 }
 
 // ProcessBuild Triggers of a job to process a given build
-func (h *Handler) ProcessBuild(conf *config.Config) http.HandlerFunc {
+func (h *Handler) ProcessBuild() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var request ProcessRequest
 		body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
@@ -73,12 +75,12 @@ func (h *Handler) ProcessBuild(conf *config.Config) http.HandlerFunc {
 			request.BuildID = uuid.New().String()
 		}
 
-		url := absURL(r, fmt.Sprintf("/api/v1/build/%s", request.BuildID), conf)
+		url := absURL(r, fmt.Sprintf("/api/v1/build/%s", request.BuildID), h.config)
 		response := &ProcessResponse{
 			Location: url,
 		}
 		go func() {
-			jenkins.CrawlJenkins(conf, request.BuildURL, request.BuildID)
+			jenkins.CrawlJenkins(h.config, h.database, request.BuildURL, request.BuildID)
 		}()
 		writeJSON(http.StatusCreated, response, w)
 		return
@@ -90,19 +92,12 @@ func (h *Handler) GetJenkinsBuild() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		buildID := vars["id"]
-		folder, _ := osext.ExecutableFolder()
-		file := fmt.Sprintf("%s/out_%s.json", folder, buildID)
-		b, err := ioutil.ReadFile(file)
+		data, err := h.database.Get(buildID)
+
 		if err != nil {
 			writeJSON(http.StatusInternalServerError, err, w)
 			return
 		}
-		var resp jenkins.JenkinsData
-		err = json.Unmarshal(b, &resp)
-		if err != nil {
-			writeJSON(http.StatusInternalServerError, err, w)
-			return
-		}
-		writeJSON(http.StatusOK, resp, w)
+		writeJSON(http.StatusOK, data, w)
 	}
 }

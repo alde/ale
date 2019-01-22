@@ -4,5 +4,7 @@ port: 8080
 loglevel: info
 logformat: json
 
-gcsbucket: testbucket
+database:
+  type: datastore
+  project: my-gcs-project
 owner: the_team

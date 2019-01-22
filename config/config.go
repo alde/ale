@@ -22,12 +22,18 @@ type Config struct {
 	LogFormat string `yaml:"logformat" envconfig:"logformat"`
 
 	// GCS Bucket
-	Bucket string `yaml:"gcsbucket" envconfig:"gcsbucket"`
+	Database DBConfig `yaml:"database"`
 
 	// Service settings
 	// - Owner of the service. For example the team running it.
 	//   Defaulted to the current user.
 	Owner string `yaml:"owner" envconfig:"owner"`
+}
+
+// DBConfig represents the Database Configuration object
+type DBConfig struct {
+	Type    string `yaml:"type"`
+	Project string `yaml:"project"`
 }
 
 // Initialize a new Config
@@ -48,7 +54,9 @@ func DefaultConfig() *Config {
 		LogLevel:  "debug",
 		LogFormat: "text",
 
-		Bucket: "",
+		Database: DBConfig{
+			Type: "file",
+		},
 
 		Owner: os.Getenv("USER"),
 	}

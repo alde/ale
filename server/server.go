@@ -3,6 +3,8 @@ package server
 import (
 	"net/http"
 
+	"github.com/alde/ale/db"
+
 	"github.com/alde/ale/config"
 
 	"github.com/gorilla/mux"
@@ -10,9 +12,9 @@ import (
 )
 
 // NewRouter is used to create a new HTTP router
-func NewRouter(cfg *config.Config) *mux.Router {
+func NewRouter(cfg *config.Config, db db.Database) *mux.Router {
 	router := mux.NewRouter().StrictSlash(true)
-	h := NewHandler(cfg)
+	h := NewHandler(cfg, db)
 
 	for _, route := range routes(h) {
 		router.
@@ -38,7 +40,7 @@ func routes(h *Handler) []route {
 			Name:    "PostBuild",
 			Method:  "POST",
 			Pattern: "/api/v1/process",
-			Handler: h.ProcessBuild(h.config),
+			Handler: h.ProcessBuild(),
 		},
 		{
 			Name:    "GetBuild",
