@@ -28,14 +28,12 @@ GET
 
 ## Usage
 
-Watch/process a Build:
+Process a Build:
 ```bash
 curl -XPOST http://ale-server:port/api/v1/process \
     -H "Content-Type: application/json" \
     -d @- << EOF
 {
-    "org": "github-org",
-    "repo": "github-repo",
     "buildId": "unique-id-of-build",
     "buildUrl": "http://jenkins.local:8080/job/jobId/262"
 }
@@ -54,10 +52,22 @@ Query for build information
 curl http://ale-server:port/api/v1/build/unique-id-of-build \
     -H "Accept: application/json"
 ```
-response:
+response (sample):
 ```json
 200 OK
 {
-    // to be determined
+    "stages": [
+		{
+			"status": "SUCCESS",
+			"name": "Preparation - Delete workspace when build is done",
+			"log_text": "\u003cspan class=\"timestamp\"\u003e\u003cb\u003e15:17:10\u003c/b\u003e \u003c/span\u003e\u003cstyle\u003e.timestamper-plain-text {visibility: hidden;}\u003c/style\u003e[WS-CLEANUP] Deleting project workspace...\n\u003cspan class=\"timestamp\"\u003e\u003cb\u003e15:17:10\u003c/b\u003e \u003c/span\u003e\u003cstyle\u003e.timestamper-plain-text {visibility: hidden;}\u003c/style\u003e[WS-CLEANUP] Deferred wipeout is used...\n\u003cspan class=\"timestamp\"\u003e\u003cb\u003e15:17:10\u003c/b\u003e \u003c/span\u003e\u003cstyle\u003e.timestamper-plain-text {visibility: hidden;}\u003c/style\u003e[WS-CLEANUP] done\n",
+			"log_length": 1119,
+			"start_time": 1548083830768
+        }
+    ],
+	"status": "SUCCESS",
+	"name": "#502 - org/repo - refs/pull/65/merge",
+	"id": "502",
+	"build_id": "597bc093-6824-4287-8161-f558f8022ded"
 }
 ```

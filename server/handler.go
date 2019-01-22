@@ -42,12 +42,11 @@ func (h *Handler) ServiceMetadata() http.HandlerFunc {
 
 // ProcessRequest represents the json payload of the request
 type ProcessRequest struct {
-	Org      string `json:"org"`
-	Repo     string `json:"repo"`
 	BuildID  string `json:"buildId,omitempty"`
 	BuildURL string `json:"buildUrl"`
 }
 
+// ProcessResponse represents the response from a requested processing
 type ProcessResponse struct {
 	Location string `json:"location"`
 }
@@ -64,6 +63,11 @@ func (h *Handler) ProcessBuild(conf *config.Config) http.HandlerFunc {
 		err = json.Unmarshal(body, &request)
 		if err != nil {
 			handleError(err, w, "unable to deserialize payload")
+			return
+		}
+		if request.BuildURL == "" {
+			handleError(err, w, "build_url is required")
+			return
 		}
 		if request.BuildID == "" {
 			request.BuildID = uuid.New().String()
