@@ -60,17 +60,17 @@ response (sample):
 200 OK
 {
     "stages": [
-		{
-			"status": "SUCCESS",
-			"name": "Preparation - Delete workspace when build is done",
-			"log_text": "\u003cspan class=\"timestamp\"\u003e\u003cb\u003e15:17:10\u003c/b\u003e \u003c/span\u003e\u003cstyle\u003e.timestamper-plain-text {visibility: hidden;}\u003c/style\u003e[WS-CLEANUP] Deleting project workspace...\n\u003cspan class=\"timestamp\"\u003e\u003cb\u003e15:17:10\u003c/b\u003e \u003c/span\u003e\u003cstyle\u003e.timestamper-plain-text {visibility: hidden;}\u003c/style\u003e[WS-CLEANUP] Deferred wipeout is used...\n\u003cspan class=\"timestamp\"\u003e\u003cb\u003e15:17:10\u003c/b\u003e \u003c/span\u003e\u003cstyle\u003e.timestamper-plain-text {visibility: hidden;}\u003c/style\u003e[WS-CLEANUP] done\n",
-			"log_length": 1119,
-			"start_time": 1548083830768
+        {
+            "status": "SUCCESS",
+            "name": "Preparation - Delete workspace when build is done",
+            "log_text": "\u003cspan class=\"timestamp\"\u003e\u003cb\u003e15:17:10\u003c/b\u003e \u003c/span\u003e\u003cstyle\u003e.timestamper-plain-text {visibility: hidden;}\u003c/style\u003e[WS-CLEANUP] Deleting project workspace...\n\u003cspan class=\"timestamp\"\u003e\u003cb\u003e15:17:10\u003c/b\u003e \u003c/span\u003e\u003cstyle\u003e.timestamper-plain-text {visibility: hidden;}\u003c/style\u003e[WS-CLEANUP] Deferred wipeout is used...\n\u003cspan class=\"timestamp\"\u003e\u003cb\u003e15:17:10\u003c/b\u003e \u003c/span\u003e\u003cstyle\u003e.timestamper-plain-text {visibility: hidden;}\u003c/style\u003e[WS-CLEANUP] done\n",
+            "log_length": 1119,
+            "start_time": 1548083830768
         }
     ],
-	"status": "SUCCESS",
-	"name": "#502 - org/repo - refs/pull/65/merge",
-	"id": "502",
-	"build_id": "597bc093-6824-4287-8161-f558f8022ded"
+    "status": "SUCCESS",
+    "name": "#502 - org/repo - refs/pull/65/merge",
+    "id": "502",
+    "build_id": "597bc093-6824-4287-8161-f558f8022ded"
 }
 ```
