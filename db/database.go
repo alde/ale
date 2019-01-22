@@ -22,7 +22,9 @@ type Database interface {
 
 // Datastore is a Google Cloud Datastore implementation of the Database interface
 type Datastore struct {
-	client *datastore.Client
+	client    *datastore.Client
+	ctx       context.Context
+	namespace string
 }
 
 // NewDatastore creates a new Datastore database object
@@ -32,18 +34,39 @@ func NewDatastore(ctx context.Context, cfg *config.Config) Database {
 		logrus.WithError(err).Error("unable to create datastore client")
 	}
 	return &Datastore{
-		client: dsClient,
+		client:    dsClient,
+		ctx:       ctx,
+		namespace: cfg.Database.Namespace,
 	}
 }
 
 // Put inserts data into the database
 func (db *Datastore) Put(data *ale.JenkinsData, buildID string) error {
-	return nil
+	key := &datastore.Key{
+		Kind:      "JenkinsBuild",
+		Name:      buildID,
+		Parent:    nil,
+		Namespace: db.namespace,
+	}
+	_, err := db.client.Put(db.ctx, key, data)
+	return err
 }
 
 // Get retrieves data from the database
 func (db *Datastore) Get(buildID string) (*ale.JenkinsData, error) {
-	return nil, nil
+	var entity ale.JenkinsData
+	key := &datastore.Key{
+		Kind:      "JenkinsBuild",
+		Name:      buildID,
+		Parent:    nil,
+		Namespace: db.namespace,
+	}
+	err := db.client.Get(db.ctx, key, entity)
+	if err != nil {
+		return nil, err
+	}
+
+	return &entity, nil
 }
 
 // Filestore is a hacky filesystem "database". To be removed.

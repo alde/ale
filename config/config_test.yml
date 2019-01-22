@@ -6,5 +6,6 @@ logformat: json
 
 database:
   type: datastore
+  namespace: ale-jenkinslog
   project: my-gcs-project
 owner: the_team

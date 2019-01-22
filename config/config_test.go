@@ -11,12 +11,12 @@ import (
 func Test_DefaultConfig(t *testing.T) {
 	c := DefaultConfig()
 	assert := assert.New(t)
-	assert.Equal(c.Address, "0.0.0.0")
-	assert.Equal(c.Port, 7654)
-	assert.Equal(c.LogFormat, "text")
-	assert.Equal(c.LogLevel, "debug")
-	assert.Equal(c.Database.Type, "file")
-	assert.Equal(c.Owner, os.Getenv("USER"))
+	assert.Equal("0.0.0.0", c.Address)
+	assert.Equal(7654, c.Port)
+	assert.Equal("text", c.LogFormat)
+	assert.Equal("debug", c.LogLevel)
+	assert.Equal("file", c.Database.Type)
+	assert.Equal(os.Getenv("USER"), c.Owner)
 
 }
 
@@ -29,6 +29,9 @@ func Test_ReadEnvironment(t *testing.T) {
 	os.Setenv("ALE_LOGLEVEL", "error")
 	os.Setenv("ALE_LOGFORMAT", "json")
 	os.Setenv("ALE_OWNER", "the_boss")
+	os.Setenv("ALE_DATABASE_TYPE", "datastore")
+	os.Setenv("ALE_DATABASE_PROJECT", "my-gcp-project")
+	os.Setenv("ALE_DATABASE_NAMESPACE", "my-namespace")
 
 	ReadEnvironment(c)
 
@@ -37,12 +40,18 @@ func Test_ReadEnvironment(t *testing.T) {
 	os.Unsetenv("ALE_LOGLEVEL")
 	os.Unsetenv("ALE_LOGFORMAT")
 	os.Unsetenv("ALE_OWNER")
+	os.Unsetenv("ALE_DATABASE_TYPE")
+	os.Unsetenv("ALE_DATABASE_PROJECT")
+	os.Unsetenv("ALE_DATABASE_NAMESPACE")
 
-	assert.Equal(c.Address, "10.0.0.0")
-	assert.Equal(c.Port, 9090)
-	assert.Equal(c.LogFormat, "json")
-	assert.Equal(c.LogLevel, "error")
-	assert.Equal(c.Owner, "the_boss")
+	assert.Equal("10.0.0.0", c.Address)
+	assert.Equal(9090, c.Port)
+	assert.Equal("json", c.LogFormat)
+	assert.Equal("error", c.LogLevel)
+	assert.Equal("the_boss", c.Owner)
+	assert.Equal("datastore", c.Database.Type)
+	assert.Equal("my-gcp-project", c.Database.Project)
+	assert.Equal("my-namespace", c.Database.Namespace)
 }
 
 func Test_ReadConfigFile(t *testing.T) {
@@ -51,13 +60,14 @@ func Test_ReadConfigFile(t *testing.T) {
 	assert := assert.New(t)
 
 	ReadConfigFile(c, fmt.Sprintf("%s/config_test.yml", wd))
-	assert.Equal(c.Address, "127.0.0.1")
-	assert.Equal(c.Port, 8080)
-	assert.Equal(c.LogFormat, "json")
-	assert.Equal(c.LogLevel, "info")
-	assert.Equal(c.Owner, "the_team")
-	assert.Equal(c.Database.Type, "datastore")
-	assert.Equal(c.Database.Project, "my-gcs-project")
+	assert.Equal("127.0.0.1", c.Address)
+	assert.Equal(8080, c.Port)
+	assert.Equal("json", c.LogFormat)
+	assert.Equal("info", c.LogLevel)
+	assert.Equal("the_team", c.Owner)
+	assert.Equal("datastore", c.Database.Type)
+	assert.Equal("my-gcs-project", c.Database.Project)
+	assert.Equal("ale-jenkinslog", c.Database.Namespace)
 }
 
 func Test_ReadConfigFile_Error(t *testing.T) {

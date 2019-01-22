@@ -32,8 +32,9 @@ type Config struct {
 
 // DBConfig represents the Database Configuration object
 type DBConfig struct {
-	Type    string `yaml:"type"`
-	Project string `yaml:"project"`
+	Type      string `yaml:"type" envconfig:"type"`
+	Project   string `yaml:"project" envconfig:"project"`
+	Namespace string `yaml:"namespace" envconfig:"namespace"`
 }
 
 // Initialize a new Config
