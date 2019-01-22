@@ -44,6 +44,11 @@ func updateState(stateChan <-chan *ale.JenkinsData, processChan chan<- string, d
 					time.Sleep(5 * time.Second)
 					processChan <- buildID
 				}()
+			} else {
+				logrus.WithFields(logrus.Fields{
+					"build_id": buildID,
+					"status":   jdata.Status,
+				}).Info("build finished")
 			}
 		}
 	}
@@ -138,7 +143,7 @@ func extractNodeLogs(logLink *url.URL) *ale.NodeLog {
 	var nodeLog ale.NodeLog
 	err = json.Unmarshal(body, &nodeLog)
 	if err != nil {
-		logrus.Error(err)
+		logrus.WithError(err).WithField("url", logLink.String()).Error("unable to extract logs from node")
 	}
 	return &nodeLog
 }
@@ -149,13 +154,18 @@ func crawlStageFlowNodesLogs(execution *ale.JobExecution, buildURL *url.URL) []*
 		if node.Links.Log.Href == "" {
 			continue
 		}
-		logs = append(logs, extractLogsFromFlowNode(&node, buildURL, execution.Name))
+		logLink := &url.URL{
+			Scheme: buildURL.Scheme,
+			Host:   buildURL.Host,
+			Path:   node.Links.Log.Href,
+		}
+		logs = append(logs, extractLogsFromFlowNode(&node, logLink, execution.Name))
 	}
 	return logs
 }
 
 func extractLogsFromExecution(execution *ale.JobExecution, buildURL *url.URL) []*ale.JenkinsStage {
-	if execution.Links.Log.Href == "" {
+	if execution.StageFlowNodes != nil && len(execution.StageFlowNodes) > 0 {
 		return crawlStageFlowNodesLogs(execution, buildURL)
 	}
 	return crawlExecutionLogs(execution, buildURL)
