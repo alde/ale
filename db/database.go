@@ -40,6 +40,12 @@ func NewDatastore(ctx context.Context, cfg *config.Config) Database {
 	}
 }
 
+// DatastoreEntity is used to store data in datastore, and prevent indexing of the huge json
+type DatastoreEntity struct {
+	Key   string          `json:"key" datastore:"key"`
+	Value ale.JenkinsData `json:"value" datastore:"value,noindex"`
+}
+
 // Put inserts data into the database
 func (db *Datastore) Put(data *ale.JenkinsData, buildID string) error {
 	key := &datastore.Key{
@@ -48,25 +54,31 @@ func (db *Datastore) Put(data *ale.JenkinsData, buildID string) error {
 		Parent:    nil,
 		Namespace: db.namespace,
 	}
-	_, err := db.client.Put(db.ctx, key, data)
+	entity := &DatastoreEntity{
+		Key:   buildID,
+		Value: *data,
+	}
+	_, err := db.client.Put(db.ctx, key, entity)
 	return err
 }
 
 // Get retrieves data from the database
 func (db *Datastore) Get(buildID string) (*ale.JenkinsData, error) {
-	var entity ale.JenkinsData
+	var entity DatastoreEntity
 	key := &datastore.Key{
 		Kind:      "JenkinsBuild",
 		Name:      buildID,
 		Parent:    nil,
 		Namespace: db.namespace,
 	}
-	err := db.client.Get(db.ctx, key, entity)
+	err := db.client.Get(db.ctx, key, &entity)
 	if err != nil {
 		return nil, err
 	}
 
-	return &entity, nil
+	jdata := entity.Value
+
+	return &jdata, nil
 }
 
 // Filestore is a hacky filesystem "database". To be removed.

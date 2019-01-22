@@ -42,8 +42,13 @@ func main() {
 
 func setupDatabase(ctx context.Context, cfg *config.Config) db.Database {
 	if cfg.Database.Type == "datastore" {
+		logrus.WithFields(logrus.Fields{
+			"namespace": cfg.Database.Namespace,
+			"project":   cfg.Database.Project,
+		}).Info("configuring database connection")
 		return db.NewDatastore(ctx, cfg)
 	}
+	logrus.Info("setting up filesystem pretend database")
 	return db.NewFilestore(ctx, cfg)
 }
 

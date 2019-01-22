@@ -33,7 +33,10 @@ func updateState(stateChan <-chan *ale.JenkinsData, processChan chan<- string, d
 		select {
 		case jdata := <-stateChan:
 			logrus.Debug("got request to update the state")
-			db.Put(jdata, buildID)
+			if err := db.Put(jdata, buildID); err != nil {
+				logrus.WithError(err).Error("unable to add to database")
+			}
+
 			if jdata.Status == "" || jdata.Status == "IN_PROGRESS" {
 				go func() {
 					logrus.Debug("sleeping for 5 seconds before requerying")

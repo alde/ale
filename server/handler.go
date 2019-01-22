@@ -95,7 +95,7 @@ func (h *Handler) GetJenkinsBuild() http.HandlerFunc {
 		data, err := h.database.Get(buildID)
 
 		if err != nil {
-			writeJSON(http.StatusInternalServerError, err, w)
+			handleError(err, w, "unable to query from database")
 			return
 		}
 		writeJSON(http.StatusOK, data, w)
