@@ -1,4 +1,7 @@
 # ALE
+[![Build Status](https://travis-ci.org/alde/ale.svg?branch=master)](https://travis-ci.org/alde/ale)
+[![Coverage Status](https://coveralls.io/repos/github/alde/ale/badge.svg?branch=master)](https://coveralls.io/github/alde/ale?branch=master)
+[![Go Report Card](https://goreportcard.com/badge/github.com/alde/ale)](https://goreportcard.com/report/github.com/alde/ale)
 
 Automated Log Extractor
 
