@@ -36,6 +36,7 @@ func updateState(stateChan <-chan *ale.JenkinsData, processChan chan<- string, d
 			if err := db.Put(jdata, buildID); err != nil {
 				logrus.WithError(err).Error("unable to add to database")
 			}
+			logrus.WithField("build_id", buildID).Info("database updated")
 
 			if jdata.Status == "" || jdata.Status == "IN_PROGRESS" {
 				go func() {
@@ -60,11 +61,14 @@ func crawlBuild(processChan <-chan string, stateChan chan<- *ale.JenkinsData, ur
 			defer resp.Body.Close()
 			body, err := ioutil.ReadAll(resp.Body)
 			err = json.Unmarshal(body, &jd)
-			logrus.WithField("uri", uri.String()).Info("crawling jenkins API")
+			logrus.WithFields(logrus.Fields{
+				"uri":      uri.String(),
+				"build_id": buildID,
+			}).Info("crawling jenkins API")
 			jdata := extractLogs(jd, buildID, uri)
 			logrus.Info("extracted jenkins data")
 			stateChan <- jdata
-			logrus.Debug("sent data to stateChannel")
+			logrus.Debug("data sent to stateChannel")
 		}
 	}
 
@@ -125,7 +129,6 @@ func extractLogsFromFlowNode(node *ale.StageFlowNode, buildURL *url.URL, ename s
 }
 
 func extractNodeLogs(logLink *url.URL) *ale.NodeLog {
-	logrus.WithField("uri", logLink.String()).Info("crawling jenkins API")
 	resp, err := http.Get(logLink.String())
 	if err != nil {
 		logrus.Error(err)

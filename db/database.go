@@ -31,7 +31,7 @@ type Datastore struct {
 func NewDatastore(ctx context.Context, cfg *config.Config) Database {
 	dsClient, err := datastore.NewClient(ctx, cfg.Database.Project)
 	if err != nil {
-		logrus.WithError(err).Error("unable to create datastore client")
+		logrus.WithError(err).Fatal("unable to create datastore client")
 	}
 	return &Datastore{
 		client:    dsClient,

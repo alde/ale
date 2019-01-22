@@ -45,6 +45,7 @@ func setupDatabase(ctx context.Context, cfg *config.Config) db.Database {
 		logrus.WithFields(logrus.Fields{
 			"namespace": cfg.Database.Namespace,
 			"project":   cfg.Database.Project,
+			"type":      cfg.Database.Type,
 		}).Info("configuring database connection")
 		return db.NewDatastore(ctx, cfg)
 	}
