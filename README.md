@@ -44,7 +44,7 @@ EOF
 ```
 response:
 ```json
- 201 Created
+201 Created
 {
     "location": "http://ale-server:port/api/v1/build/unique-id-of-build"
 }
@@ -74,3 +74,13 @@ response (sample):
     "build_id": "597bc093-6824-4287-8161-f558f8022ded"
 }
 ```
+
+## API
+The POST to start processing takes the following input:
+
+* `buildUrl`
+    * **Required** The URL of the build to start crawling. The format should be similar to `http://jenkins.internal:8080/job/jobName/714`, and should end in the build number.
+* `buildId`
+    * **optional** If provided it will be used as the key of the build.
+    * If not provided, a Version 4 UUID will be generated and used as a key.
+    * Needs to be unique.
