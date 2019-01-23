@@ -67,7 +67,7 @@ type JenkinsData struct {
 type JenkinsStage struct {
 	Status    string `json:"status"`
 	Name      string `json:"name"`
-	LogText   string `json:"log_text"`
+	Logs      []*Log `json:"log"`
 	LogLength int    `json:"log_length"`
 	StartTime int    `json:"start_time"`
 }
@@ -76,4 +76,9 @@ type JenkinsStage struct {
 type DatastoreEntity struct {
 	Key   string      `json:"key" datastore:"key"`
 	Value JenkinsData `json:"value" datastore:"value,noindex"`
+}
+
+type Log struct {
+	TimeStamp string `json:"timestamp"`
+	Line      string `json:"line"`
 }

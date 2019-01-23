@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/alde/ale"
+
 	"github.com/Sirupsen/logrus"
 	"github.com/alde/ale/db"
 
@@ -79,6 +81,9 @@ func (h *Handler) ProcessBuild() http.HandlerFunc {
 		exists, err := h.database.Has(request.BuildID)
 		if err != nil {
 			logrus.WithError(err).Warn("unable to check for existance of database entry")
+		}
+		if !exists {
+			h.database.Put(&ale.JenkinsData{}, request.BuildID)
 		}
 
 		url := absURL(r, fmt.Sprintf("/api/v1/build/%s", request.BuildID), h.config)

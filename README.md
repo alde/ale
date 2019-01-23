@@ -84,3 +84,8 @@ The POST to start processing takes the following input:
     * **optional** If provided it will be used as the key of the build.
     * If not provided, a Version 4 UUID will be generated and used as a key.
     * Needs to be unique.
+
+
+## TODO
+* Only crawl entries that were not previously marked as done
+* Figure out how to get around jenkins' "hasMore: true" annoyance (although maybe for a separate call)

@@ -111,7 +111,7 @@ func crawlExecutionLogs(execution *ale.JobExecution, buildURL *url.URL) []*ale.J
 			Status:    nodeLog.NodeStatus,
 			Name:      execution.Name,
 			LogLength: nodeLog.Length,
-			LogText:   nodeLog.Text,
+			Logs:      splitLogs(nodeLog.Text),
 			StartTime: execution.StartTimeMillis,
 		},
 	}
@@ -128,7 +128,7 @@ func extractLogsFromFlowNode(node *ale.StageFlowNode, buildURL *url.URL, ename s
 		Status:    nodeLog.NodeStatus,
 		Name:      fmt.Sprintf("%s - %s", ename, node.Name),
 		LogLength: nodeLog.Length,
-		LogText:   nodeLog.Text,
+		Logs:      splitLogs(nodeLog.Text),
 		StartTime: node.StartTimeMillis,
 	}
 }
@@ -188,5 +188,31 @@ func extractLogs(jd *ale.JobData, buildID string, buildURL *url.URL) *ale.Jenkin
 		ID:      jd.ID,
 		BuildID: buildID,
 		Stages:  stages,
+	}
+}
+
+func splitLogs(log string) []*ale.Log {
+	var l []*ale.Log
+	for _, part := range strings.Split(log, "\n") {
+		if part == "" {
+			continue
+		}
+		l = append(l, extractTimestamp(part))
+	}
+	return l
+}
+
+func extractTimestamp(line string) *ale.Log {
+	if !strings.HasPrefix(line, `<span class="timestamp"><b>`) {
+		return &ale.Log{
+			Line: line,
+		}
+	}
+	newLine := strings.Replace(line, `<span class="timestamp"><b>`, "", 1)
+	newLine = strings.Replace(newLine, "</b> </span><style>.timestamper-plain-text {visibility: hidden;}</style>", "|", 1)
+	s := strings.Split(newLine, "|")
+	return &ale.Log{
+		TimeStamp: s[0],
+		Line:      s[1],
 	}
 }
