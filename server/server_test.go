@@ -32,6 +32,11 @@ func (db *mockDB) Get(buildID string) (*ale.JenkinsData, error) {
 	return db.memory[buildID], nil
 }
 
+func (db *mockDB) Has(buildID string) (bool, error) {
+	_, ok := db.memory[buildID]
+	return ok, nil
+}
+
 func Test_NewRouter(t *testing.T) {
 	h := NewHandler(cfg, mockDatabase)
 	nr := NewRouter(cfg, mockDatabase)
