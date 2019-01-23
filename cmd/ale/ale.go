@@ -47,10 +47,18 @@ func setupDatabase(ctx context.Context, cfg *config.Config) db.Database {
 			"project":   cfg.Database.Project,
 			"type":      cfg.Database.Type,
 		}).Info("configuring database connection")
-		return db.NewDatastore(ctx, cfg)
+		database, err := db.NewDatastore(ctx, cfg)
+		if err != nil {
+			logrus.WithError(err).Fatal("unable to create datastore client")
+		}
+		return database
 	}
 	logrus.Info("setting up filesystem pretend database")
-	return db.NewFilestore(ctx, cfg)
+	database, err := db.NewFilestore(ctx, cfg)
+	if err != nil {
+		logrus.WithError(err).Fatal("unable to create fake database")
+	}
+	return database
 }
 
 func setupLogging(cfg *config.Config) {
