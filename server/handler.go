@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/alde/ale/db"
 
 	"github.com/alde/ale/config"
@@ -75,10 +76,20 @@ func (h *Handler) ProcessBuild() http.HandlerFunc {
 			request.BuildID = uuid.New().String()
 		}
 
+		exists, err := h.database.Has(request.BuildID)
+		if err != nil {
+			logrus.WithError(err).Warn("unable to check for existance of database entry")
+		}
+
 		url := absURL(r, fmt.Sprintf("/api/v1/build/%s", request.BuildID), h.config)
 		response := &ProcessResponse{
 			Location: url,
 		}
+		if exists {
+			writeJSON(http.StatusFound, response, w)
+			return
+		}
+
 		go func() {
 			jenkins.CrawlJenkins(h.config, h.database, request.BuildURL, request.BuildID)
 		}()
@@ -92,6 +103,13 @@ func (h *Handler) GetJenkinsBuild() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		buildID := vars["id"]
+		if exists, _ := h.database.Has(buildID); !exists {
+			data := make(map[string]string)
+			data["buildID"] = buildID
+			data["message"] = "build not found in database, has it been processed?"
+			writeJSON(http.StatusNotFound, data, w)
+			return
+		}
 		data, err := h.database.Get(buildID)
 
 		if err != nil {
