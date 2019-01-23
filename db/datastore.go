@@ -11,9 +11,15 @@ import (
 
 // Datastore is a Google Cloud Datastore implementation of the Database interface
 type Datastore struct {
-	client    *datastore.Client
+	client    datastoreInterface
 	ctx       context.Context
 	namespace string
+}
+
+type datastoreInterface interface {
+	Put(context.Context, *datastore.Key, interface{}) (*datastore.Key, error)
+	Get(context.Context, *datastore.Key, interface{}) error
+	Count(context.Context, *datastore.Query) (int, error)
 }
 
 // NewDatastore creates a new Datastore database object
@@ -29,12 +35,6 @@ func NewDatastore(ctx context.Context, cfg *config.Config) (Database, error) {
 	}, nil
 }
 
-// DatastoreEntity is used to store data in datastore, and prevent indexing of the huge json
-type DatastoreEntity struct {
-	Key   string          `json:"key" datastore:"key"`
-	Value ale.JenkinsData `json:"value" datastore:"value,noindex"`
-}
-
 func (db *Datastore) makeKey(buildID string) *datastore.Key {
 	return &datastore.Key{
 		Kind:      "JenkinsBuild",
@@ -47,7 +47,7 @@ func (db *Datastore) makeKey(buildID string) *datastore.Key {
 // Put inserts data into the database
 func (db *Datastore) Put(data *ale.JenkinsData, buildID string) error {
 	key := db.makeKey(buildID)
-	entity := &DatastoreEntity{
+	entity := &ale.DatastoreEntity{
 		Key:   buildID,
 		Value: *data,
 	}
@@ -86,7 +86,7 @@ func (db *Datastore) Has(buildID string) (bool, error) {
 
 // Get retrieves data from the database
 func (db *Datastore) Get(buildID string) (*ale.JenkinsData, error) {
-	var entity DatastoreEntity
+	var entity ale.DatastoreEntity
 	key := db.makeKey(buildID)
 	err := db.client.Get(db.ctx, key, &entity)
 	if err != nil {

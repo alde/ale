@@ -71,3 +71,9 @@ type JenkinsStage struct {
 	LogLength int    `json:"log_length"`
 	StartTime int    `json:"start_time"`
 }
+
+// DatastoreEntity is used to store data in datastore, and prevent indexing of the huge json
+type DatastoreEntity struct {
+	Key   string      `json:"key" datastore:"key"`
+	Value JenkinsData `json:"value" datastore:"value,noindex"`
+}
