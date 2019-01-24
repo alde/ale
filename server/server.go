@@ -37,6 +37,12 @@ type route struct {
 func routes(h *Handler) []route {
 	return []route{
 		{
+			Name:    "PostBuildOptions",
+			Method:  "OPTIONS",
+			Pattern: "/api/v1/process",
+			Handler: h.ProcessOptions(),
+		},
+		{
 			Name:    "PostBuild",
 			Method:  "POST",
 			Pattern: "/api/v1/process",

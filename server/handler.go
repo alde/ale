@@ -59,6 +59,9 @@ type ProcessResponse struct {
 // ProcessBuild Triggers of a job to process a given build
 func (h *Handler) ProcessBuild() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 		var request ProcessRequest
 		body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
 		if err != nil {
@@ -106,6 +109,9 @@ func (h *Handler) ProcessBuild() http.HandlerFunc {
 // GetJenkinsBuild returns data about the given build
 func (h *Handler) GetJenkinsBuild() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 		vars := mux.Vars(r)
 		buildID := vars["id"]
 		if exists, _ := h.database.Has(buildID); !exists {
@@ -122,5 +128,15 @@ func (h *Handler) GetJenkinsBuild() http.HandlerFunc {
 			return
 		}
 		writeJSON(http.StatusOK, data, w)
+	}
+}
+
+func (h *Handler) ProcessOptions() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		logrus.Info("OPTIONS request")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+		writeJSON(http.StatusOK, struct{}{}, w)
 	}
 }
