@@ -99,21 +99,19 @@ func crawlJobStage(buildURL *url.URL, link string) ale.JobExecution {
 	return JobExecution
 }
 
-func crawlExecutionLogs(execution *ale.JobExecution, buildURL *url.URL) []*ale.JenkinsStage {
+func crawlExecutionLogs(execution *ale.JobExecution, buildURL *url.URL) *ale.JenkinsStage {
 	logLink := &url.URL{
 		Scheme: buildURL.Scheme,
 		Host:   buildURL.Host,
 		Path:   execution.Links.Log.Href,
 	}
 	nodeLog := extractNodeLogs(logLink)
-	return []*ale.JenkinsStage{
-		{
-			Status:    nodeLog.NodeStatus,
-			Name:      execution.Name,
-			LogLength: nodeLog.Length,
-			Logs:      splitLogs(nodeLog.Text),
-			StartTime: execution.StartTimeMillis,
-		},
+	return &ale.JenkinsStage{
+		Status:    nodeLog.NodeStatus,
+		Name:      execution.Name,
+		LogLength: nodeLog.Length,
+		Logs:      splitLogs(nodeLog.Text),
+		StartTime: execution.StartTimeMillis,
 	}
 }
 
@@ -148,7 +146,7 @@ func extractNodeLogs(logLink *url.URL) *ale.NodeLog {
 	return &nodeLog
 }
 
-func crawlStageFlowNodesLogs(execution *ale.JobExecution, buildURL *url.URL) []*ale.JenkinsStage {
+func crawlStageFlowNodesLogs(execution *ale.JobExecution, buildURL *url.URL) *ale.JenkinsStage {
 	logs := []*ale.JenkinsStage{}
 	for _, node := range execution.StageFlowNodes {
 		if node.Links.Log.Href == "" {
@@ -159,12 +157,23 @@ func crawlStageFlowNodesLogs(execution *ale.JobExecution, buildURL *url.URL) []*
 			Host:   buildURL.Host,
 			Path:   node.Links.Log.Href,
 		}
+		logrus.WithFields(logrus.Fields{
+			"url":  logLink,
+			"node": node.ID,
+		}).Debug("crawling jenkins")
 		logs = append(logs, extractLogsFromFlowNode(&node, logLink, execution.Name))
 	}
-	return logs
+	logrus.Debugf("%+v", logs)
+	return &ale.JenkinsStage{
+		Status:    execution.Status,
+		Name:      execution.Name,
+		SubStages: logs,
+		StartTime: execution.StartTimeMillis,
+	}
 }
 
-func extractLogsFromExecution(execution *ale.JobExecution, buildURL *url.URL) []*ale.JenkinsStage {
+func extractLogsFromExecution(execution *ale.JobExecution, buildURL *url.URL) *ale.JenkinsStage {
+	logrus.WithField("id", execution.ID).Debug("crowling execution")
 	if execution.StageFlowNodes != nil && len(execution.StageFlowNodes) > 0 {
 		return crawlStageFlowNodesLogs(execution, buildURL)
 	}
@@ -175,7 +184,7 @@ func extractLogs(jd *ale.JobData, buildID string, buildURL *url.URL) *ale.Jenkin
 	var stages []*ale.JenkinsStage
 	for _, stage := range jd.Stages {
 		execution := crawlJobStage(buildURL, stage.Links.Self.Href)
-		stages = append(stages, extractLogsFromExecution(&execution, buildURL)...)
+		stages = append(stages, extractLogsFromExecution(&execution, buildURL))
 	}
 
 	sort.Slice(stages[:], func(i, j int) bool {

@@ -89,3 +89,8 @@ The POST to start processing takes the following input:
 ## TODO
 * Only crawl entries that were not previously marked as done
 * Figure out how to get around jenkins' "hasMore: true" annoyance (although maybe for a separate call)
+    * From jenkins plugin doc:
+    ```
+    Hardcoded API limits that may be overridden by setting the properties at startup (requires restarting Jenkins to see the change):
+        * Characters in each step's log entry (default: 10240 or 10kB) - com.cloudbees.workflow.rest.external.FlowNodeLogExt.maxReturnChars
+    ```
