@@ -48,5 +48,5 @@ func Test_NewRouter(t *testing.T) {
 
 func Test_routes(t *testing.T) {
 	h := NewHandler(cfg, mockDatabase)
-	assert.Len(t, routes(h), 3, "3 routes is the magic number.")
+	assert.Len(t, routes(h), 4, "4 routes is the magic number.")
 }

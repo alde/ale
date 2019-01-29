@@ -21,13 +21,14 @@ import (
 
 // Handler holds the server context
 type Handler struct {
-	config   *config.Config
-	database db.Database
+	config         *config.Config
+	database       db.Database
+	crawlerCreator func(db.Database, *config.Config) *jenkins.Crawler
 }
 
 // NewHandler createss a new HTTP handler
 func NewHandler(cfg *config.Config, db db.Database) *Handler {
-	return &Handler{config: cfg, database: db}
+	return &Handler{config: cfg, database: db, crawlerCreator: jenkins.NewCrawler}
 }
 
 // ServiceMetadata displays hopefully useful information about the service
@@ -99,7 +100,8 @@ func (h *Handler) ProcessBuild() http.HandlerFunc {
 		}
 
 		go func() {
-			jenkins.CrawlJenkins(h.config, h.database, request.BuildURL, request.BuildID)
+			crawler := h.crawlerCreator(h.database, h.config)
+			crawler.CrawlJenkins(request.BuildURL, request.BuildID)
 		}()
 		writeJSON(http.StatusCreated, response, w)
 		return
@@ -131,9 +133,9 @@ func (h *Handler) GetJenkinsBuild() http.HandlerFunc {
 	}
 }
 
+// ProcessOptions handles the OPTIONS call for CORS
 func (h *Handler) ProcessOptions() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		logrus.Info("OPTIONS request")
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")

@@ -20,6 +20,12 @@ func Test_ExtractTimestamp(t *testing.T) {
 				Line:      "[WS-CLEANUP] done",
 			},
 		},
+		{
+			`a log line without an identifiable timestamp`,
+			&ale.Log{
+				Line: "a log line without an identifiable timestamp",
+			},
+		},
 	}
 
 	for i, td := range tdata {
