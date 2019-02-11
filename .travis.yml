@@ -14,3 +14,6 @@ script:
  - make ale
  - overalls -project=github.com/alde/ale -covermode=count
  - goveralls -coverprofile=overalls.coverprofile -service travis-ci
+
+after_success:
+ - misc/docker.sh
