@@ -34,6 +34,9 @@ func main() {
 		"address": cfg.Address,
 		"port":    cfg.Port,
 	}).Info("Launching ALE")
+	logrus.WithFields(logrus.Fields{
+		"GOOGLE_APPLICATION_CREDENTIALS": os.Getenv("GOOGLE_APPLICATION_CREDENTIALS"),
+	}).Debug("credentials file")
 	router := server.NewRouter(cfg, database)
 	if err := manners.ListenAndServe(bind, router); err != nil {
 		logrus.WithError(err).Fatal("Unrecoverable error!")
@@ -50,6 +53,9 @@ func setupDatabase(ctx context.Context, cfg *config.Config) db.Database {
 		database, err := db.NewDatastore(ctx, cfg)
 		if err != nil {
 			logrus.WithError(err).Fatal("unable to create datastore client")
+		}
+		if _, err := database.Has("0"); err != nil {
+			logrus.WithError(err).Fatal("unable to check connection to the database")
 		}
 		return database
 	}
