@@ -32,7 +32,7 @@ func NewDatastore(ctx context.Context, cfg *config.Config) (Database, error) {
 	if credentials == "" {
 		dsClient, err = datastore.NewClient(ctx, cfg.Database.Project)
 	} else {
-		dsClient, err = datastore.NewClient(ctx, cfg.Database.Project, option.WithCredentialsFile("path/to/keyfile.json"))
+		dsClient, err = datastore.NewClient(ctx, cfg.Database.Project, option.WithCredentialsFile(credentials))
 	}
 	if err != nil {
 		return nil, err
