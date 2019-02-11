@@ -2,11 +2,13 @@ package db
 
 import (
 	"context"
+	"os"
 
 	"cloud.google.com/go/datastore"
 	"github.com/Sirupsen/logrus"
 	"github.com/alde/ale"
 	"github.com/alde/ale/config"
+	"google.golang.org/api/option"
 )
 
 // Datastore is a Google Cloud Datastore implementation of the Database interface
@@ -24,7 +26,14 @@ type datastoreInterface interface {
 
 // NewDatastore creates a new Datastore database object
 func NewDatastore(ctx context.Context, cfg *config.Config) (Database, error) {
-	dsClient, err := datastore.NewClient(ctx, cfg.Database.Project)
+	credentials := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
+	var dsClient *datastore.Client
+	var err error
+	if credentials == "" {
+		dsClient, err = datastore.NewClient(ctx, cfg.Database.Project)
+	} else {
+		dsClient, err = datastore.NewClient(ctx, cfg.Database.Project, option.WithCredentialsFile("path/to/keyfile.json"))
+	}
 	if err != nil {
 		return nil, err
 	}

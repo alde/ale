@@ -1,5 +1,5 @@
-hash: 8f6d08a9096c989197338937151133f8ddcb93c16b4ba5efa9cdd912c5ffef95
-updated: 2019-01-22T13:12:21.688003+01:00
+hash: 1a45a25152ec1df1e0e4dc3170dfb3aa9051f67daf3428be4168fdcc8a34eef5
+updated: 2019-02-11T16:45:27.737047+01:00
 imports:
 - name: cloud.google.com/go
   version: 0ebda48a7f143b1cce9eb37a8c1106ac762a3430
@@ -38,6 +38,10 @@ imports:
   version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
 - name: github.com/gorilla/mux
   version: e3702bed27f0d39777b0b37b664b6280e8ef8fbf
+- name: github.com/hashicorp/golang-lru
+  version: 20f1fb78b0740ba8c3cb143a61e86ba5c8669768
+  subpackages:
+  - simplelru
 - name: github.com/kardianos/osext
   version: ae77be60afb1dcacde03767a8c37337fad28ac14
 - name: github.com/kelseyhightower/envconfig
@@ -68,7 +72,7 @@ imports:
 - name: github.com/Sirupsen/logrus
   version: f006c2ac4710855cf0f916dd6b77acf6b048dc6e
 - name: go.opencensus.io
-  version: 2f39cd45ab48b7dc7e5b0d7393bae371e201b1c4
+  version: ed9f155754b50f84f15997a4550ebd54667078e7
   subpackages:
   - exemplar
   - internal
@@ -98,14 +102,14 @@ imports:
   - lex/httplex
   - trace
 - name: golang.org/x/oauth2
-  version: 5dab4167f31cbd76b407f1486c86b40748bc5073
+  version: 99b60b757ec124ebb7d6b7e97f153b19c10ce163
   subpackages:
   - google
   - internal
   - jws
   - jwt
 - name: golang.org/x/sys
-  version: 054c452bb702e465e95ce8e7a3d9a6cf0cd1188d
+  version: 3b5209105503162ded1863c307ac66fec31120dd
   subpackages:
   - unix
   - windows
@@ -117,7 +121,7 @@ imports:
   - unicode/bidi
   - unicode/norm
 - name: google.golang.org/api
-  version: c96cd22f2b6d8d3be1fb20eeb03741be903cb3d5
+  version: 19e022d8cf43ce81f046bae8cc18c5397cc7732f
   subpackages:
   - googleapi
   - googleapi/internal/uritemplates
@@ -140,7 +144,7 @@ imports:
   - socket
   - urlfetch
 - name: google.golang.org/genproto
-  version: db91494dd46c1fdcbbde05e5ff5eb56df8f7d79a
+  version: 4b09977fb92221987e99d190c8f88f2c92727a29
   subpackages:
   - googleapis/api/annotations
   - googleapis/datastore/v1
@@ -148,7 +152,7 @@ imports:
   - googleapis/rpc/status
   - googleapis/type/latlng
 - name: google.golang.org/grpc
-  version: ec9c18c8c6dda21490f4840e9c9946d883fd3037
+  version: 5d5c0ac4a3d908920edcd0d7b5ec509391010a54
   subpackages:
   - balancer
   - balancer/base

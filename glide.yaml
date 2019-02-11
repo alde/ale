@@ -28,6 +28,10 @@ import:
 - package: golang.org/x/sys
   subpackages:
   - unix
+- package: google.golang.org/api
+  version: ~0.1.0
+  subpackages:
+  - option
 testImport:
 - package: github.com/stretchr/testify
   version: ~1.3.0
