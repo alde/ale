@@ -1,26 +1,32 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
+	"cloud.google.com/go/datastore"
 	"github.com/alde/ale"
-
 	"github.com/alde/ale/config"
+	"github.com/alde/ale/db"
+	"github.com/alde/ale/mock"
 
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 )
 
+var cfg0 = &config.Config{}
+
 func Test_ServiceMetadata(t *testing.T) {
 	m := mux.NewRouter()
-	config := &config.Config{}
 
-	h := NewHandler(config, mockDatabase)
+	h := NewHandler(cfg0, mockDatabase)
 	m.HandleFunc("/service-metadata", h.ServiceMetadata())
 	wr := httptest.NewRecorder()
 
@@ -45,9 +51,8 @@ func Test_ServiceMetadata(t *testing.T) {
 
 func Test_ProcessOptions(t *testing.T) {
 	m := mux.NewRouter()
-	config := &config.Config{}
 
-	h := NewHandler(config, mockDatabase)
+	h := NewHandler(cfg0, mockDatabase)
 	m.HandleFunc("/api/v1/process", h.ProcessOptions())
 	wr := httptest.NewRecorder()
 
@@ -66,14 +71,13 @@ func Test_ProcessOptions(t *testing.T) {
 
 func Test_GetJenkinsBuild(t *testing.T) {
 	m := mux.NewRouter()
-	config := &config.Config{}
 	jdata := &ale.JenkinsData{
 		BuildID: "buildId",
 		Status:  "IN_PROGRESS",
 	}
 	mockDatabase.Put(jdata, "buildId")
 
-	h := NewHandler(config, mockDatabase)
+	h := NewHandler(cfg0, mockDatabase)
 	m.HandleFunc("/api/v1/build/{id}", h.GetJenkinsBuild())
 	wr := httptest.NewRecorder()
 
@@ -85,4 +89,51 @@ func Test_GetJenkinsBuild(t *testing.T) {
 	body, _ := ioutil.ReadAll(io.LimitReader(wr.Body, 1048576))
 	json.Unmarshal(body, &actual)
 	assert.Equal(t, jdata, &actual)
+}
+
+func Test_GetJenkinsBuildNotFound(t *testing.T) {
+	m := mux.NewRouter()
+	dbclient := &mock.Datastore{}
+	database := &db.Datastore{
+		Client: dbclient,
+	}
+
+	h := NewHandler(cfg0, database)
+	m.HandleFunc("/api/v1/build/{id}", h.GetJenkinsBuild())
+	wr := httptest.NewRecorder()
+
+	r, _ := http.NewRequest("GET", "/api/v1/build/buildId0", nil)
+	m.ServeHTTP(wr, r)
+
+	assert.Equal(t, http.StatusNotFound, wr.Code)
+	actual := `{"buildID":"buildId0","message":"build not found in database, has it been processed?"}`
+	body, _ := ioutil.ReadAll(io.LimitReader(wr.Body, 1048576))
+	assert.Equal(t, strings.Trim(string(body), "\n"), actual)
+}
+
+func Test_GetJenkinsBuildError(t *testing.T) {
+	m := mux.NewRouter()
+	dbclient := &mock.Datastore{
+		GetFn: func(context.Context, *datastore.Key, interface{}) error {
+			return errors.New("a communication problem with datastore")
+		},
+		CountFn: func(context.Context, *datastore.Query) (int, error) {
+			return 1, nil
+		},
+	}
+	database := &db.Datastore{
+		Client: dbclient,
+	}
+
+	h := NewHandler(cfg0, database)
+	m.HandleFunc("/api/v1/build/{id}", h.GetJenkinsBuild())
+	wr := httptest.NewRecorder()
+
+	r, _ := http.NewRequest("GET", "/api/v1/build/buildId9", nil)
+	m.ServeHTTP(wr, r)
+
+	assert.Equal(t, http.StatusUnprocessableEntity, wr.Code)
+	actual := `"Message":"unable to query from database"`
+	body, _ := ioutil.ReadAll(io.LimitReader(wr.Body, 1048576))
+	assert.Contains(t, string(body), actual)
 }

@@ -23,11 +23,11 @@ type Crawler struct {
 	config         *config.Config
 	processChannel chan string
 	stateChannel   chan *ale.JenkinsData
-	httpClient     HttpGetter
+	httpClient     HTTPGetter
 }
 
-// An interface only requiring Get from http.Client
-type HttpGetter interface {
+// HTTPGetter is an interface only requiring Get from http.Client
+type HTTPGetter interface {
 	Get(uri string) (*http.Response, error)
 }
 
@@ -52,14 +52,7 @@ func (c *Crawler) CrawlJenkins(buildURI string, buildID string) {
 	c.processChannel <- buildID
 }
 
-// Close the channels for the Crawler
-func (c *Crawler) Close() {
-	close(c.stateChannel)
-	close(c.processChannel)
-}
-
 func (c *Crawler) updateState(buildID string) {
-	defer c.Close()
 	for {
 		select {
 		case jdata := <-c.stateChannel:

@@ -49,7 +49,7 @@ func Test_makeKey(t *testing.T) {
 func Test_Put(t *testing.T) {
 	m := &mock.Datastore{}
 	database := &Datastore{
-		client: m,
+		Client: m,
 	}
 	database.Put(&ale.JenkinsData{}, "foobar")
 	assert.True(t, m.PutFnInvoked)
@@ -58,7 +58,7 @@ func Test_Put(t *testing.T) {
 func Test_Get(t *testing.T) {
 	m := &mock.Datastore{}
 	database := &Datastore{
-		client: m,
+		Client: m,
 	}
 	database.Put(&ale.JenkinsData{}, "foobar")
 
@@ -74,7 +74,7 @@ func Test_GetWithError(t *testing.T) {
 		},
 	}
 	database := &Datastore{
-		client: m,
+		Client: m,
 	}
 
 	database.Put(&ale.JenkinsData{}, "foobar")
@@ -87,7 +87,7 @@ func Test_GetWithError(t *testing.T) {
 func Test_Has(t *testing.T) {
 	m := &mock.Datastore{}
 	database := &Datastore{
-		client: m,
+		Client: m,
 	}
 	b, _ := database.Has("foobar")
 	assert.True(t, m.CountFnInvoked)
@@ -107,7 +107,7 @@ func Test_HasNotButNoError(t *testing.T) {
 		},
 	}
 	database := &Datastore{
-		client: m,
+		Client: m,
 	}
 	b, _ := database.Has("foobar")
 	assert.True(t, m.CountFnInvoked)

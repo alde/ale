@@ -11,7 +11,7 @@ import (
 
 // Datastore is a Google Cloud Datastore implementation of the Database interface
 type Datastore struct {
-	client    datastoreInterface
+	Client    datastoreInterface
 	ctx       context.Context
 	namespace string
 }
@@ -29,7 +29,7 @@ func NewDatastore(ctx context.Context, cfg *config.Config) (Database, error) {
 		return nil, err
 	}
 	return &Datastore{
-		client:    dsClient,
+		Client:    dsClient,
 		ctx:       ctx,
 		namespace: cfg.Database.Namespace,
 	}, nil
@@ -51,7 +51,7 @@ func (db *Datastore) Put(data *ale.JenkinsData, buildID string) error {
 		Key:   buildID,
 		Value: *data,
 	}
-	_, err := db.client.Put(db.ctx, key, entity)
+	_, err := db.Client.Put(db.ctx, key, entity)
 	return err
 }
 
@@ -66,7 +66,7 @@ func (db *Datastore) Has(buildID string) (bool, error) {
 	logrus.WithFields(logrus.Fields{
 		"build_id": buildID,
 	}).Debug("checking the existance of database entry")
-	count, err := db.client.Count(db.ctx, query)
+	count, err := db.Client.Count(db.ctx, query)
 	if err != nil {
 		logrus.WithError(err).WithField("build_id", buildID).Debug("database entry not found")
 		return false, err
@@ -88,7 +88,7 @@ func (db *Datastore) Has(buildID string) (bool, error) {
 func (db *Datastore) Get(buildID string) (*ale.JenkinsData, error) {
 	var entity ale.DatastoreEntity
 	key := db.makeKey(buildID)
-	err := db.client.Get(db.ctx, key, &entity)
+	err := db.Client.Get(db.ctx, key, &entity)
 	if err != nil {
 		return nil, err
 	}
