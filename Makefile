@@ -5,7 +5,7 @@ VERSION?=$(shell git describe HEAD --always | sed s/^v//)
 DATE?=$(shell date -u '+%Y-%m-%d_%H:%M:%S')
 DOCKERNAME?=alde/ale
 DOCKERTAG?=${DOCKERNAME}:${VERSION}
-LDFLAGS=-X ${REPO}/version.Version=${VERSION} -X ${REPO}/version.BuildDate=${DATE}
+LDFLAGS=-extldflags "-static" -X ${REPO}/version.Version=${VERSION} -X ${REPO}/version.BuildDate=${DATE}
 SRC=$(shell find . -name '*.go')
 TESTFLAGS="-v"
 

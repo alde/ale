@@ -1,4 +1,4 @@
-FROM alpine:3.7
+FROM golang:1.11-alpine3.9
 
 RUN mkdir -p /opt/ale
 COPY ale /opt/ale/ale

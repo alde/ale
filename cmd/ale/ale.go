@@ -34,9 +34,6 @@ func main() {
 		"address": cfg.Address,
 		"port":    cfg.Port,
 	}).Info("Launching ALE")
-	logrus.WithFields(logrus.Fields{
-		"GOOGLE_APPLICATION_CREDENTIALS": os.Getenv("GOOGLE_APPLICATION_CREDENTIALS"),
-	}).Debug("credentials file")
 	router := server.NewRouter(cfg, database)
 	if err := manners.ListenAndServe(bind, router); err != nil {
 		logrus.WithError(err).Fatal("Unrecoverable error!")
