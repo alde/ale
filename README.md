@@ -44,7 +44,14 @@ EOF
 ```
 response:
 ```json
-201 Created
+201 CREATED
+{
+    "location": "http://ale-server:port/api/v1/build/unique-id-of-build"
+}
+```
+If it has already been crawled, the response will be
+```json
+302 FOUND
 {
     "location": "http://ale-server:port/api/v1/build/unique-id-of-build"
 }
@@ -63,7 +70,20 @@ response (sample):
         {
             "status": "SUCCESS",
             "name": "Preparation - Delete workspace when build is done",
-            "log_text": "\u003cspan class=\"timestamp\"\u003e\u003cb\u003e15:17:10\u003c/b\u003e \u003c/span\u003e\u003cstyle\u003e.timestamper-plain-text {visibility: hidden;}\u003c/style\u003e[WS-CLEANUP] Deleting project workspace...\n\u003cspan class=\"timestamp\"\u003e\u003cb\u003e15:17:10\u003c/b\u003e \u003c/span\u003e\u003cstyle\u003e.timestamper-plain-text {visibility: hidden;}\u003c/style\u003e[WS-CLEANUP] Deferred wipeout is used...\n\u003cspan class=\"timestamp\"\u003e\u003cb\u003e15:17:10\u003c/b\u003e \u003c/span\u003e\u003cstyle\u003e.timestamper-plain-text {visibility: hidden;}\u003c/style\u003e[WS-CLEANUP] done\n",
+            "log": [
+                {
+                    "timestamp": "09:46:24",
+                    "line": "[WS-CLEANUP] Deleting project workspace..."
+                },
+                {
+                    "timestamp": "09:46:24",
+                    "line": "[WS-CLEANUP] Deferred wipeout is used..."
+                },
+                {
+                    "timestamp": "09:46:24",
+                    "line": "[WS-CLEANUP] done"
+                }
+            ],
             "log_length": 1119,
             "start_time": 1548083830768
         }
@@ -85,12 +105,15 @@ The POST to start processing takes the following input:
     * If not provided, a Version 4 UUID will be generated and used as a key.
     * Needs to be unique.
 
+## Getting more logs from Jenkins API
+
+Set the following JAVA_OPTS when you launch your Jenkins
+```bash
+export JAVA_OPTS="${JAVA_OPTS} -Dfile.encoding=UTF-8 -Dcom.cloudbees.workflow.rest.external.FlowNodeLogExt.maxReturnChars=1048576"
+```
+
 
 ## TODO
 * Only crawl entries that were not previously marked as done
-* Figure out how to get around jenkins' "hasMore: true" annoyance (although maybe for a separate call)
-    * From jenkins plugin doc:
-    ```
-    Hardcoded API limits that may be overridden by setting the properties at startup (requires restarting Jenkins to see the change):
-        * Characters in each step's log entry (default: 10240 or 10kB) - com.cloudbees.workflow.rest.external.FlowNodeLogExt.maxReturnChars
-    ```
+* Parameter to force a recrawl
+* Don't create the database row before checking if the provided URL is valid
