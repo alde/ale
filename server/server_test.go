@@ -6,36 +6,17 @@ import (
 	"github.com/alde/ale"
 
 	"github.com/alde/ale/config"
+	"github.com/alde/ale/mock"
 
 	"github.com/stretchr/testify/assert"
 )
 
 var (
 	cfg          = &config.Config{}
-	mockDatabase = &mockDB{
+	mockDatabase = &mock.DB{
 		memory: make(map[string]*ale.JenkinsData),
 	}
 )
-
-type mockDB struct {
-	memory map[string]*ale.JenkinsData
-}
-
-// Put inserts data into the database
-func (db *mockDB) Put(data *ale.JenkinsData, buildID string) error {
-	db.memory[buildID] = data
-	return nil
-}
-
-// Get retrieves data from the database
-func (db *mockDB) Get(buildID string) (*ale.JenkinsData, error) {
-	return db.memory[buildID], nil
-}
-
-func (db *mockDB) Has(buildID string) (bool, error) {
-	_, ok := db.memory[buildID]
-	return ok, nil
-}
 
 func Test_NewRouter(t *testing.T) {
 	h := NewHandler(cfg, mockDatabase)

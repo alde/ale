@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -24,6 +25,7 @@ type Crawler struct {
 	processChannel chan string
 	stateChannel   chan *ale.JenkinsData
 	httpClient     HTTPGetter
+	r              *regexp.Regexp
 }
 
 // HTTPGetter is an interface only requiring Get from http.Client
@@ -33,12 +35,17 @@ type HTTPGetter interface {
 
 // NewCrawler instatiates a new crawler
 func NewCrawler(db db.Database, conf *config.Config) *Crawler {
+	r, err := regexp.Compile(conf.LogPattern)
+	if err != nil {
+		logrus.WithError(err).Fatal("unable to create log matcher")
+	}
 	return &Crawler{
 		database:       db,
 		config:         conf,
 		processChannel: make(chan string, 1),
 		stateChannel:   make(chan *ale.JenkinsData, 1),
 		httpClient:     http.DefaultClient,
+		r:              r,
 	}
 }
 
@@ -123,39 +130,39 @@ func (c *Crawler) crawlJobStage(buildURL *url.URL, link string) ale.JobExecution
 	return JobExecution
 }
 
-func crawlExecutionLogs(execution *ale.JobExecution, buildURL *url.URL) *ale.JenkinsStage {
+func (c *Crawler) crawlExecutionLogs(execution *ale.JobExecution, buildURL *url.URL) *ale.JenkinsStage {
 	logLink := &url.URL{
 		Scheme: buildURL.Scheme,
 		Host:   buildURL.Host,
 		Path:   execution.Links.Log.Href,
 	}
-	nodeLog := extractNodeLogs(logLink)
+	nodeLog := c.extractNodeLogs(logLink)
 	return &ale.JenkinsStage{
 		Status:    nodeLog.NodeStatus,
 		Name:      execution.Name,
 		LogLength: nodeLog.Length,
-		Logs:      splitLogs(nodeLog.Text),
+		Logs:      c.splitLogs(nodeLog.Text),
 		StartTime: execution.StartTimeMillis,
 	}
 }
 
-func extractLogsFromFlowNode(node *ale.StageFlowNode, buildURL *url.URL, ename string) *ale.JenkinsStage {
+func (c *Crawler) extractLogsFromFlowNode(node *ale.StageFlowNode, buildURL *url.URL, ename string) *ale.JenkinsStage {
 	logLink := &url.URL{
 		Scheme: buildURL.Scheme,
 		Host:   buildURL.Host,
 		Path:   node.Links.Log.Href,
 	}
-	nodeLog := extractNodeLogs(logLink)
+	nodeLog := c.extractNodeLogs(logLink)
 	return &ale.JenkinsStage{
 		Status:    nodeLog.NodeStatus,
 		Name:      fmt.Sprintf("%s - %s", ename, node.Name),
 		LogLength: nodeLog.Length,
-		Logs:      splitLogs(nodeLog.Text),
+		Logs:      c.splitLogs(nodeLog.Text),
 		StartTime: node.StartTimeMillis,
 	}
 }
 
-func extractNodeLogs(logLink *url.URL) *ale.NodeLog {
+func (c *Crawler) extractNodeLogs(logLink *url.URL) *ale.NodeLog {
 	resp, err := http.Get(logLink.String())
 	if err != nil {
 		logrus.Error(err)
@@ -170,7 +177,7 @@ func extractNodeLogs(logLink *url.URL) *ale.NodeLog {
 	return &nodeLog
 }
 
-func crawlStageFlowNodesLogs(execution *ale.JobExecution, buildURL *url.URL) *ale.JenkinsStage {
+func (c *Crawler) crawlStageFlowNodesLogs(execution *ale.JobExecution, buildURL *url.URL) *ale.JenkinsStage {
 	logs := []*ale.JenkinsStage{}
 	for _, node := range execution.StageFlowNodes {
 		if node.Links.Log.Href == "" {
@@ -185,7 +192,7 @@ func crawlStageFlowNodesLogs(execution *ale.JobExecution, buildURL *url.URL) *al
 			"url":  logLink,
 			"node": node.ID,
 		}).Debug("crawling jenkins")
-		logs = append(logs, extractLogsFromFlowNode(&node, logLink, execution.Name))
+		logs = append(logs, c.extractLogsFromFlowNode(&node, logLink, execution.Name))
 	}
 	logrus.Debugf("%+v", logs)
 	return &ale.JenkinsStage{
@@ -196,19 +203,19 @@ func crawlStageFlowNodesLogs(execution *ale.JobExecution, buildURL *url.URL) *al
 	}
 }
 
-func extractLogsFromExecution(execution *ale.JobExecution, buildURL *url.URL) *ale.JenkinsStage {
+func (c *Crawler) extractLogsFromExecution(execution *ale.JobExecution, buildURL *url.URL) *ale.JenkinsStage {
 	logrus.WithField("id", execution.ID).Debug("crowling execution")
 	if execution.StageFlowNodes != nil && len(execution.StageFlowNodes) > 0 {
-		return crawlStageFlowNodesLogs(execution, buildURL)
+		return c.crawlStageFlowNodesLogs(execution, buildURL)
 	}
-	return crawlExecutionLogs(execution, buildURL)
+	return c.crawlExecutionLogs(execution, buildURL)
 }
 
 func (c *Crawler) extractLogs(jd *ale.JobData, buildID string, buildURL *url.URL) *ale.JenkinsData {
 	var stages []*ale.JenkinsStage
 	for _, stage := range jd.Stages {
 		execution := c.crawlJobStage(buildURL, stage.Links.Self.Href)
-		stages = append(stages, extractLogsFromExecution(&execution, buildURL))
+		stages = append(stages, c.extractLogsFromExecution(&execution, buildURL))
 	}
 
 	sort.Slice(stages[:], func(i, j int) bool {
@@ -224,28 +231,31 @@ func (c *Crawler) extractLogs(jd *ale.JobData, buildID string, buildURL *url.URL
 	}
 }
 
-func splitLogs(log string) []*ale.Log {
+func (c *Crawler) splitLogs(log string) []*ale.Log {
 	var l []*ale.Log
 	for _, part := range strings.Split(log, "\n") {
 		if part == "" {
 			continue
 		}
-		l = append(l, extractTimestamp(part))
+		l = append(l, c.extractTimestamp(part))
 	}
 	return l
 }
 
-func extractTimestamp(line string) *ale.Log {
+func (c *Crawler) extractTimestamp(line string) *ale.Log {
 	if !strings.HasPrefix(line, `<span class="timestamp"><b>`) {
 		return &ale.Log{
 			Line: line,
 		}
 	}
-	newLine := strings.Replace(line, `<span class="timestamp"><b>`, "", 1)
-	newLine = strings.Replace(newLine, "</b> </span><style>.timestamper-plain-text {visibility: hidden;}</style>", "|", 1)
-	s := strings.Split(newLine, "|")
+	re := c.r.FindStringSubmatch(line)
+	if len(re) <= 1 {
+		return &ale.Log{
+			Line: line,
+		}
+	}
 	return &ale.Log{
-		TimeStamp: s[0],
-		Line:      s[1],
+		TimeStamp: re[1],
+		Line:      re[2],
 	}
 }

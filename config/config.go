@@ -28,6 +28,9 @@ type Config struct {
 	// - Owner of the service. For example the team running it.
 	//   Defaulted to the current user.
 	Owner string `yaml:"owner" envconfig:"owner"`
+
+	// LogPattern used to separate timestamp and log lines
+	LogPattern string `yaml:"log_pattern" envconfig:"LOG_PATTERN"`
 }
 
 // DBConfig represents the Database Configuration object
@@ -59,7 +62,8 @@ func DefaultConfig() *Config {
 			Type: "file",
 		},
 
-		Owner: os.Getenv("USER"),
+		Owner:      os.Getenv("USER"),
+		LogPattern: `^.*?([\d{2}:\d{2}:\d{2}]+)<\/b>.*<\/span>\s(.*)$`,
 	}
 }
 
