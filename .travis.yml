@@ -12,8 +12,8 @@ before_install:
 script:
  - make vet
  - make ale
- - overalls -project=github.com/alde/ale -covermode=count
- - goveralls -coverprofile=overalls.coverprofile -service travis-ci
+#  - overalls -project=github.com/alde/ale -covermode=count
+#  - goveralls -coverprofile=overalls.coverprofile -service travis-ci || true
 
 after_success:
  - misc/docker.sh
