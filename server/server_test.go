@@ -14,7 +14,7 @@ import (
 var (
 	cfg          = &config.Config{}
 	mockDatabase = &mock.DB{
-		memory: make(map[string]*ale.JenkinsData),
+		Memory: make(map[string]*ale.JenkinsData),
 	}
 )
 

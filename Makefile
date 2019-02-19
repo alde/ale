@@ -12,7 +12,7 @@ TESTFLAGS="-v"
 DOCKER_GO_SRC_PATH=/go/src/github.com/alde/ale
 DOCKER_GOLANG_RUN_CMD=docker run --rm -v "$(PWD)":$(DOCKER_GO_SRC_PATH) -w $(DOCKER_GO_SRC_PATH) golang:1.11 bash -c
 
-PACKAGES=$(shell go list ./... | grep -v /vendor/)
+PACKAGES=$(shell glide novendor )
 
 all: test
 
