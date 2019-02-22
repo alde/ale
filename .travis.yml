@@ -16,5 +16,5 @@ script:
 #  - overalls -project=github.com/alde/ale -covermode=count
 #  - goveralls -coverprofile=overalls.coverprofile -service travis-ci || true
 
-after_success:
- - misc/docker.sh
+# after_success:
+#  - misc/docker.sh

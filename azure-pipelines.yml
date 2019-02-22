@@ -14,9 +14,8 @@ variables:
   GOROOT: '/usr/local/go1.11' # Go installation path
   GOPATH: '$(system.defaultWorkingDirectory)/gopath' # Go workspace path
   modulePath: '$(GOPATH)/src/github.com/$(build.repository.name)' # Path to the module's code
-  VERSION: $(Build.SourceVersion)
-  LDFLAGS: '-extldflags "-static" -X github.com/alde/ale//version.Version=$(VERSION) -X github.com/alde/ale//version.BuildDate=$(Build.BuildId)'
-  DOCKERTAG: 'alde/ale:$(Build.BuildId)'
+  LDFLAGS: '-extldflags "-static" -X github.com/alde/ale//version.Version="$(Date:yyyyMMdd).$(Build.BuildId)" -X github.com/alde/ale//version.BuildDate=$(Date:yyyyMMdd)'
+  DOCKERTAG: 'alde/ale:$(Date:yyyyMMdd).$(Build.BuildId)'
 
 steps:
 - script: |
@@ -48,7 +47,7 @@ steps:
   displayName: 'vet'
 
 - script: |
-    go test -v -coverprofile=coverage.txt -covermode count 2>&1 | go-junit-report > junit.xml
+    go test $(glide novendor) -v -coverprofile=coverage.txt -covermode count 2>&1 | go-junit-report > junit.xml
     gocov convert coverage.txt > coverage.json
     gocov-xml < coverage.json > coverage.xml
     gocov-html < coverage.json > index.html
@@ -66,16 +65,22 @@ steps:
   displayName: 'linter'
 
 - script: |
-    go build -v -ldflags "${LDFLAGS}" -o ale github.com/alde/ale/cmd/ale
+    go build -v -ldflags "$(LDFLAGS)" -o ale github.com/alde/ale/cmd/ale
   workingDirectory: '$(modulePath)'
   displayName: 'build'
 
 - script: |
-    CGO_ENABLED=0 GOOS=linux go build -ldflags "${LDFLAGS}" -a -installsuffix cgo -o ale github.com/alde/ale/cmd/ale
+    CGO_ENABLED=0 GOOS=linux go build -ldflags "$(LDFLAGS)" -a -installsuffix cgo -o ale github.com/alde/ale/cmd/ale
     mv ale docker
-    docker build -t ${DOCKERTAG} docker
+    docker build -t $(DOCKERTAG) docker
   workingDirectory: '$(modulePath)'
   displayName: 'build docker image'
+
+- script: |
+    docker login -u $(dockerId) -p $(dockerPassword)
+    docker push $(DOCKERTAG)
+  displayName: 'push docker image'
+
 
 - task: PublishTestResults@2
   inputs:
@@ -87,6 +92,3 @@ steps:
     codeCoverageTool: 'cobertura'
     summaryFileLocation: '$(modulePath)/reports/coverage.xml'
     reportDirectory: '$(modulePath)/reports/'
-# - script: |
-#   docker login -u $(dockerId) -p $(pswd)
-#   docker push $(dockerId)/$(imageName)
