@@ -14,8 +14,8 @@ variables:
   GOROOT: '/usr/local/go1.11' # Go installation path
   GOPATH: '$(system.defaultWorkingDirectory)/gopath' # Go workspace path
   modulePath: '$(GOPATH)/src/github.com/$(build.repository.name)' # Path to the module's code
-  LDFLAGS: '-extldflags "-static" -X github.com/alde/ale//version.Version="$(Date:yyyyMMdd).$(Build.BuildId)" -X github.com/alde/ale//version.BuildDate=$(Date:yyyyMMdd)'
-  DOCKERTAG: 'alde/ale:$(Date:yyyyMMdd).$(Build.BuildId)'
+  LDFLAGS: '-extldflags "-static" -X github.com/alde/ale//version.Version="$(Build.BuildId)" -X github.com/alde/ale//version.BuildDate=$(date -u "+%Y-%m-%d %H:%M:%S")'
+  DOCKERTAG: 'alde/ale:$(date -u "+%Y%m%d").$(Build.BuildId)'
 
 steps:
 - script: |
