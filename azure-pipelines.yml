@@ -43,8 +43,9 @@ steps:
 
 - script: |
     go vet $(glide novendor)
+    golint -set_exit_status
   workingDirectory: '$(modulePath)'
-  displayName: 'vet'
+  displayName: 'vet and lint'
 
 - script: |
     go test $(glide novendor) -v -coverprofile=coverage.txt -covermode count 2>&1 | go-junit-report > junit.xml
@@ -60,19 +61,13 @@ steps:
   displayName: 'Run unit tests'
 
 - script: |
-    golint
-  workingDirectory: '$(modulePath)'
-  displayName: 'linter'
-
-- script: |
     go build -v -ldflags "$(LDFLAGS)" -o ale github.com/alde/ale/cmd/ale
   workingDirectory: '$(modulePath)'
   displayName: 'build'
 
 - script: |
     CGO_ENABLED=0 GOOS=linux go build -ldflags "$(LDFLAGS)" -a -installsuffix cgo -o ale github.com/alde/ale/cmd/ale
-    mv ale docker
-    docker build -t $(DOCKERTAG) docker
+    docker build -t $(DOCKERTAG) .
   workingDirectory: '$(modulePath)'
   displayName: 'build docker image'
 

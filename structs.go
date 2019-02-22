@@ -1,9 +1,11 @@
 package ale
 
+// Link represents a relative uri deeper into the Jenkins API
 type Link struct {
 	Href string `json:"href"`
 }
 
+// JobData holds parts of a jenkins job
 type JobData struct {
 	Links struct {
 		Self      Link `json:"self"`
@@ -15,6 +17,7 @@ type JobData struct {
 	ID     string     `json:"id"`
 }
 
+// JobStage holds information about a stage of a job
 type JobStage struct {
 	Links struct {
 		Self Link `json:"self"`
@@ -24,6 +27,7 @@ type JobStage struct {
 	Name   string `json:"name"`
 }
 
+// JobExecution holds information regarding an execution of a job
 type JobExecution struct {
 	Links struct {
 		Self Link `json:"self"`
@@ -36,6 +40,7 @@ type JobExecution struct {
 	StageFlowNodes  []StageFlowNode `json:"stageFlowNodes"`
 }
 
+// StageFlowNode holds information regarding a flow-node in a stage
 type StageFlowNode struct {
 	Links struct {
 		Self Link `json:"self"`
@@ -47,6 +52,7 @@ type StageFlowNode struct {
 	StartTimeMillis int    `json:"startTimeMillis"`
 }
 
+// NodeLog maps to the logs from a node
 type NodeLog struct {
 	NodeID     string `json:"nodeId"`
 	NodeStatus string `json:"nodeStatus"`
@@ -56,6 +62,7 @@ type NodeLog struct {
 	ConsoleURL string `json:"consoleUrl"`
 }
 
+// JenkinsData is the topmost level of the flattened structure stored in the database
 type JenkinsData struct {
 	Stages  []*JenkinsStage `json:"stages"`
 	Status  string          `json:"status"`
@@ -64,6 +71,7 @@ type JenkinsData struct {
 	BuildID string          `json:"build_id"`
 }
 
+// JenkinsStage holds the output from a given stage
 type JenkinsStage struct {
 	Status    string          `json:"status"`
 	Name      string          `json:"name"`
@@ -73,13 +81,14 @@ type JenkinsStage struct {
 	StartTime int             `json:"start_time"`
 }
 
+// The Log struct maps to the response value for the structured log
+type Log struct {
+	TimeStamp string `json:"timestamp"`
+	Line      string `json:"line"`
+}
+
 // DatastoreEntity is used to store data in datastore, and prevent indexing of the huge json
 type DatastoreEntity struct {
 	Key   string      `json:"key" datastore:"key"`
 	Value JenkinsData `json:"value" datastore:"value,noindex"`
-}
-
-type Log struct {
-	TimeStamp string `json:"timestamp"`
-	Line      string `json:"line"`
 }
