@@ -25,11 +25,6 @@ steps:
     mv !(gopath) '$(modulePath)'
     echo '##vso[task.prependpath]$(GOBIN)'
     echo '##vso[task.prependpath]$(GOROOT)/bin'
-    export VERSION=$(git describe HEAD --always | sed s/^v//)
-    export DATE=$(date -u '+%Y-%m-%d_%H:%M:%S')
-    export LDFLAGS="-extldflags '-static' -X github.com/alde/ale//version.Version=${VERSION} -X github.com/alde/ale//version.BuildDate=${DATE}"
-    export DOCKERNAME=alde/ale
-    export DOCKERTAG=${DOCKERNAME}:${VERSION}
   displayName: 'Set up the Go workspace'
 
 - script: |
@@ -56,11 +51,19 @@ steps:
   displayName: 'linter'
 
 - script: |
+    export VERSION=$(git describe HEAD --always | sed s/^v//)
+    export DATE=$(date -u '+%Y-%m-%d_%H:%M:%S')
+    export LDFLAGS="-extldflags '-static' -X github.com/alde/ale//version.Version=${VERSION} -X github.com/alde/ale//version.BuildDate=${DATE}"
     go build -ldflags "${LDFLAGS}" -o ale github.com/alde/ale/cmd/ale
   workingDirectory: '$(modulePath)'
   displayName: 'build'
 
 - script: |
+    export VERSION=$(git describe HEAD --always | sed s/^v//)
+    export DATE=$(date -u '+%Y-%m-%d_%H:%M:%S')
+    export LDFLAGS="-extldflags '-static' -X github.com/alde/ale//version.Version=${VERSION} -X github.com/alde/ale//version.BuildDate=${DATE}"
+    export DOCKERNAME=alde/ale
+    export DOCKERTAG=${DOCKERNAME}:${VERSION}
     CGO_ENABLED=0 GOOS=linux go build -ldflags "${LDFLAGS}" -a -installsuffix cgo -o ale github.com/alde/ale/cmd/ale
     mv ale docker
     docker build -t ${DOCKERTAG} docker
