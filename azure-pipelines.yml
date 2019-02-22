@@ -1,0 +1,69 @@
+# Go
+# Build your Go project.
+# Add steps that test, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/go
+
+trigger:
+- master
+
+pool:
+  vmImage: 'Ubuntu-16.04'
+
+variables:
+  GOBIN:  '$(GOPATH)/bin' # Go binaries path
+  GOROOT: '/usr/local/go1.11' # Go installation path
+  GOPATH: '$(system.defaultWorkingDirectory)/gopath' # Go workspace path
+  modulePath: '$(GOPATH)/src/github.com/$(build.repository.name)' # Path to the module's code
+
+steps:
+- script: |
+    mkdir -p '$(GOBIN)'
+    mkdir -p '$(GOPATH)/pkg'
+    mkdir -p '$(modulePath)'
+    shopt -s extglob
+    shopt -s dotglob
+    mv !(gopath) '$(modulePath)'
+    echo '##vso[task.prependpath]$(GOBIN)'
+    echo '##vso[task.prependpath]$(GOROOT)/bin'
+    export VERSION=$(git describe HEAD --always | sed s/^v//)
+    export DATE=$(date -u '+%Y-%m-%d_%H:%M:%S')
+    export LDFLAGS="-extldflags '-static' -X github.com/alde/ale//version.Version=${VERSION} -X github.com/alde/ale//version.BuildDate=${DATE}"
+    export DOCKERNAME=alde/ale
+    export DOCKERTAG=${DOCKERNAME}:${VERSION}
+  displayName: 'Set up the Go workspace'
+
+- script: |
+    go version
+    go get github.com/go-playground/overalls
+    go get github.com/mattn/goveralls
+    go get -v github.com/Masterminds/glide
+    glide install
+  workingDirectory: '$(modulePath)'
+  displayName: 'Get dependencies'
+
+- script: |
+    go vet $(glide novendor)
+  workingDirectory: '$(modulePath)'
+  displayName: 'vet'
+
+- script: |
+    go test $(glide novendor) -coverprofile=coverage.out
+  workingDirectory: '$(modulePath)'
+  displayName: 'run tests'
+
+- script: |
+    go list ./... | grep -v /vendor/ | grep -v assets | xargs -L1 golint -set_exit_status
+  workingDirectory: '$(modulePath)'
+  displayName: 'linter'
+
+- script: |
+    go build -ldflags "${LDFLAGS}" -o ale github.com/alde/ale/cmd/ale
+  workingDirectory: '$(modulePath)'
+  displayName: 'build'
+
+- script: |
+    CGO_ENABLED=0 GOOS=linux go build -ldflags "${LDFLAGS}" -a -installsuffix cgo -o ale github.com/alde/ale/cmd/ale
+    mv ale docker
+    docker build -t ${DOCKERTAG} docker
+  workingDirectory: '$(modulePath)'
+  displayName: 'build docker image'
