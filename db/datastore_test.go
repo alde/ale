@@ -25,20 +25,13 @@ var (
 )
 
 func Test_CreateDatastore(t *testing.T) {
-	t.Skip("Depends on GOOGLE_CREDENTIALS")
-	database, err := NewDatastore(ctx, cfg)
+	database, err := NewDatastore(ctx, cfg, &mock.Datastore{})
 	assert.NotNil(t, database)
 	assert.Nil(t, err)
 }
 
-func Test_FailCreatingDatastore(t *testing.T) {
-	database, err := NewDatastore(ctx, &config.Config{})
-	assert.Nil(t, database)
-	assert.NotNil(t, err)
-}
-
 func Test_makeKey(t *testing.T) {
-	database, _ := NewDatastore(ctx, cfg)
+	database, _ := NewDatastore(ctx, cfg, &mock.Datastore{})
 	key := database.(*Datastore).makeKey("foobar")
 
 	assert.Equal(t, "JenkinsBuild", key.Kind)

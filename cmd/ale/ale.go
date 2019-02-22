@@ -11,6 +11,7 @@ import (
 	"github.com/alde/ale/server"
 	"github.com/alde/ale/version"
 
+	"cloud.google.com/go/datastore"
 	"github.com/Sirupsen/logrus"
 	"github.com/braintree/manners"
 )
@@ -47,7 +48,11 @@ func setupDatabase(ctx context.Context, cfg *config.Config) db.Database {
 			"project":   cfg.Database.Project,
 			"type":      cfg.Database.Type,
 		}).Info("configuring database connection")
-		database, err := db.NewDatastore(ctx, cfg)
+		ds, err := datastore.NewClient(ctx, cfg.Database.Project)
+		if err != nil {
+			logrus.WithError(err).Fatal("unable to initialize datastore library")
+		}
+		database, err := db.NewDatastore(ctx, cfg, ds)
 		if err != nil {
 			logrus.WithError(err).Fatal("unable to create datastore client")
 		}

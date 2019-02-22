@@ -12,8 +12,6 @@ before_install:
 script:
  - make vet
  - go test $(glide novendor)
- - echo ${GOOGLE_APPLICATION_CREDENTIALS}
- - env
  - make ale
 #  - overalls -project=github.com/alde/ale -covermode=count
 #  - goveralls -coverprofile=overalls.coverprofile -service travis-ci || true

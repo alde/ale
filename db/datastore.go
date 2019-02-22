@@ -23,11 +23,7 @@ type datastoreInterface interface {
 }
 
 // NewDatastore creates a new Datastore database object
-func NewDatastore(ctx context.Context, cfg *config.Config) (Database, error) {
-	dsClient, err := datastore.NewClient(ctx, cfg.Database.Project)
-	if err != nil {
-		return nil, err
-	}
+func NewDatastore(ctx context.Context, cfg *config.Config, dsClient datastoreInterface) (Database, error) {
 	return &Datastore{
 		Client:    dsClient,
 		ctx:       ctx,
