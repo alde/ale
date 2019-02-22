@@ -34,9 +34,8 @@ steps:
 
 - script: |
     go version
-    go get github.com/go-playground/overalls
-    go get github.com/mattn/goveralls
-    go get -v github.com/Masterminds/glide
+    go get -u golang.org/x/lint/golint
+    go get -u github.com/Masterminds/glide
     glide install
   workingDirectory: '$(modulePath)'
   displayName: 'Get dependencies'
@@ -52,7 +51,7 @@ steps:
   displayName: 'run tests'
 
 - script: |
-    go list ./... | grep -v /vendor/ | grep -v assets | xargs -L1 golint -set_exit_status
+    golint
   workingDirectory: '$(modulePath)'
   displayName: 'linter'
 
