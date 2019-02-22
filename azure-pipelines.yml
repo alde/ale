@@ -14,6 +14,10 @@ variables:
   GOROOT: '/usr/local/go1.11' # Go installation path
   GOPATH: '$(system.defaultWorkingDirectory)/gopath' # Go workspace path
   modulePath: '$(GOPATH)/src/github.com/$(build.repository.name)' # Path to the module's code
+  DATE: $(date:yyyyMMddHHmmss)
+  VERSION: $(Build.SourceVersion)
+  LDFLAGS: '-extldflags "-static" -X github.com/alde/ale//version.Version=$(VERSION) -X github.com/alde/ale//version.BuildDate=$(DATE)'
+  DOCKERTAG: 'alde/ale:$(DATE)
 
 steps:
 - script: |
@@ -30,6 +34,10 @@ steps:
 - script: |
     go version
     go get -u golang.org/x/lint/golint
+    go get -u github.com/jstemmer/go-junit-report
+    go get -u github.com/axw/gocov/gocov
+    go get -u github.com/AlekSi/gocov-xml
+    go get -u gopkg.in/matm/v1/gocov-html
     go get -u github.com/Masterminds/glide
     glide install
   workingDirectory: '$(modulePath)'
@@ -41,9 +49,17 @@ steps:
   displayName: 'vet'
 
 - script: |
-    go test $(glide novendor) -coverprofile=coverage.out
+    go test -v -coverprofile=coverage.txt -covermode count 2>&1 | go-junit-report > junit.xml
+    gocov convert coverage.txt > coverage.json
+    gocov-xml < coverage.json > coverage.xml
+    gocov-html < coverage.json > index.html
+    mkdir reports
+    cp junit.xml ./reports/junit.xml
+    cp coverage.xml ./reports/coverage.xml
+    cp index.html ./reports/index.html
+  continueOnError: 'true'
   workingDirectory: '$(modulePath)'
-  displayName: 'run tests'
+  displayName: 'Run unit tests'
 
 - script: |
     golint
@@ -51,21 +67,27 @@ steps:
   displayName: 'linter'
 
 - script: |
-    export VERSION=$(git describe HEAD --always | sed s/^v//)
-    export DATE=$(date -u '+%Y-%m-%d_%H:%M:%S')
-    export LDFLAGS="-extldflags '-static' -X github.com/alde/ale//version.Version=${VERSION} -X github.com/alde/ale//version.BuildDate=${DATE}"
-    go build -ldflags "${LDFLAGS}" -o ale github.com/alde/ale/cmd/ale
+    go build -v -ldflags "${LDFLAGS}" -o ale github.com/alde/ale/cmd/ale
   workingDirectory: '$(modulePath)'
   displayName: 'build'
 
 - script: |
-    export VERSION=$(git describe HEAD --always | sed s/^v//)
-    export DATE=$(date -u '+%Y-%m-%d_%H:%M:%S')
-    export LDFLAGS="-extldflags '-static' -X github.com/alde/ale//version.Version=${VERSION} -X github.com/alde/ale//version.BuildDate=${DATE}"
-    export DOCKERNAME=alde/ale
-    export DOCKERTAG=${DOCKERNAME}:${VERSION}
     CGO_ENABLED=0 GOOS=linux go build -ldflags "${LDFLAGS}" -a -installsuffix cgo -o ale github.com/alde/ale/cmd/ale
     mv ale docker
     docker build -t ${DOCKERTAG} docker
   workingDirectory: '$(modulePath)'
   displayName: 'build docker image'
+
+- task: PublishTestResults@2
+  inputs:
+    testRunner: JUnit
+    testResultsFiles: '$(modulePath)/reports/junit.xml'
+
+- task: PublishCodeCoverageResults@1
+  inputs:
+    codeCoverageTool: 'cobertura'
+    summaryFileLocation: '$(modulePath)/reports/coverage.xml'
+    reportDirectory: '$(modulePath)/reports/'
+# - script: |
+#   docker login -u $(dockerId) -p $(pswd)
+#   docker push $(dockerId)/$(imageName)
