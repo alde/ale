@@ -11,6 +11,7 @@ before_install:
 
 script:
  - make vet
+ - go test $(glide novendor)
  - make ale
 #  - overalls -project=github.com/alde/ale -covermode=count
 #  - goveralls -coverprofile=overalls.coverprofile -service travis-ci || true
