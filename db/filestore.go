@@ -71,3 +71,9 @@ func (db *Filestore) Get(buildID string) (*ale.JenkinsData, error) {
 	}
 	return &resp, nil
 }
+
+// Remove is used to delete a file from the filesystem
+func (db *Filestore) Remove(buildID string) error {
+	file := db.makeFileName(buildID)
+	return os.Remove(file)
+}

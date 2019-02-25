@@ -4,6 +4,34 @@
 
 Automated Log Extractor
 
+## Purpose
+The intent for this project is to crawl the workflow API in Jenkins, and extract a more structured log divided into stages.
+It'll use the configured regex to try to extract the timestamp from each log line.
+
+
+### Configuration
+
+The following is the default config
+```yaml
+address: 0.0.0.0 # IP address to bind
+port: 7654       # The Port to bind
+
+loglevel: debug
+logformat: text  # Can be json or text
+
+database:         # database configuration
+  type: text      # text or datastore
+  namespace: null # required for datastore, Google Cloud Datastore namespace
+  project: null   # required for datastore, GCP project ID
+
+owner: ${USER} # Owner of the service, shown in the /service-metadata endpoint
+
+log_pattern: ^.*?([\d{2}:\d{2}:\d{2}]+)<\/b>.*<\/span>\s(.*)$` # Regex used to extract the timestamp from the logs.
+                                                               # Should have two groups, timestamp and log line.
+```
+
+Configuration values can also be passed as environment variables, prefixed by `ALE`, for example `ALE_DATABASE_TYPE=datastore`.
+
 ## Flow
 
 ```
@@ -103,6 +131,9 @@ The POST to start processing takes the following input:
     * **optional** If provided it will be used as the key of the build.
     * If not provided, a Version 4 UUID will be generated and used as a key.
     * Needs to be unique.
+* `forceRecrawl`
+    * **optional** If provided, an existing database entry with the same buildId (whether provided or generated), will be deleted before the crawl.
+    * Defaults to `false`.
 
 ## Getting more logs from Jenkins API
 
@@ -114,5 +145,4 @@ export JAVA_OPTS="${JAVA_OPTS} -Dfile.encoding=UTF-8 -Dcom.cloudbees.workflow.re
 
 ## TODO
 * Only crawl entries that were not previously marked as done
-* Parameter to force a recrawl
 * Don't create the database row before checking if the provided URL is valid

@@ -23,3 +23,9 @@ func (db *DB) Has(buildID string) (bool, error) {
 	_, ok := db.Memory[buildID]
 	return ok, nil
 }
+
+// Remove deletes an entry from the database
+func (db *DB) Remove(buildID string) error {
+	delete(db.Memory, buildID)
+	return nil
+}

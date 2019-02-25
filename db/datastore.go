@@ -20,6 +20,7 @@ type datastoreInterface interface {
 	Put(context.Context, *datastore.Key, interface{}) (*datastore.Key, error)
 	Get(context.Context, *datastore.Key, interface{}) error
 	Count(context.Context, *datastore.Query) (int, error)
+	Delete(context.Context, *datastore.Key) error
 }
 
 // NewDatastore creates a new Datastore database object
@@ -92,4 +93,10 @@ func (db *Datastore) Get(buildID string) (*ale.JenkinsData, error) {
 	jdata := entity.Value
 
 	return &jdata, nil
+}
+
+// Remove is used to remove an entry from the database
+func (db *Datastore) Remove(buildID string) error {
+	key := db.makeKey(buildID)
+	return db.Client.Delete(db.ctx, key)
 }

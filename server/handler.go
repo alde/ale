@@ -48,6 +48,7 @@ func (h *Handler) ServiceMetadata() http.HandlerFunc {
 type ProcessRequest struct {
 	BuildID  string `json:"buildId,omitempty"`
 	BuildURL string `json:"buildUrl"`
+	Recrawl  bool   `json:"forceRecrawl,omitempty"`
 }
 
 // ProcessResponse represents the response from a requested processing
@@ -61,7 +62,9 @@ func (h *Handler) ProcessBuild() http.HandlerFunc {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-		var request ProcessRequest
+		request := &ProcessRequest{
+			Recrawl: false,
+		}
 		body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
 		if err != nil {
 			handleError(err, w, "unable to read payload")
@@ -89,9 +92,12 @@ func (h *Handler) ProcessBuild() http.HandlerFunc {
 		response := &ProcessResponse{
 			Location: url,
 		}
-		if exists {
+		if exists && !request.Recrawl {
 			writeJSON(http.StatusFound, response, w)
 			return
+		}
+		if exists && request.Recrawl {
+			h.database.Remove(request.BuildID)
 		}
 
 		go func() {

@@ -8,6 +8,7 @@ import (
 	"github.com/alde/ale"
 )
 
+// Datastore is a mock of the Google Cloud Datastore
 type Datastore struct {
 	memory map[string]*ale.JenkinsData
 
@@ -19,6 +20,9 @@ type Datastore struct {
 
 	CountFn        func(context.Context, *datastore.Query) (int, error)
 	CountFnInvoked bool
+
+	DeleteFn        func(context.Context, *datastore.Key) error
+	DeleteFnInvoked bool
 }
 
 // Put inserts data into the database
@@ -51,6 +55,14 @@ func (md *Datastore) defaultCountFn(context.Context, *datastore.Query) (int, err
 	return 1, nil
 }
 
+func (md *Datastore) defaultDeleteFn(ctx context.Context, key *datastore.Key) error {
+	if md.memory == nil {
+		md.memory = make(map[string]*ale.JenkinsData)
+	}
+	delete(md.memory, key.Name)
+	return nil
+}
+
 func (md *Datastore) Put(ctx context.Context, key *datastore.Key, data interface{}) (*datastore.Key, error) {
 	md.PutFnInvoked = true
 	if md.PutFn == nil {
@@ -73,4 +85,12 @@ func (md *Datastore) Count(ctx context.Context, query *datastore.Query) (int, er
 		return md.defaultCountFn(ctx, query)
 	}
 	return md.CountFn(ctx, query)
+}
+
+func (md *Datastore) Delete(ctx context.Context, key *datastore.Key) error {
+	md.DeleteFnInvoked = true
+	if md.DeleteFn == nil {
+		return md.defaultDeleteFn(ctx, key)
+	}
+	return md.DeleteFn(ctx, key)
 }
