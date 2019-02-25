@@ -243,11 +243,6 @@ func (c *Crawler) splitLogs(log string) []*ale.Log {
 }
 
 func (c *Crawler) extractTimestamp(line string) *ale.Log {
-	if !strings.HasPrefix(line, `<span class="timestamp"><b>`) {
-		return &ale.Log{
-			Line: line,
-		}
-	}
 	re := c.r.FindStringSubmatch(line)
 	if len(re) <= 1 {
 		return &ale.Log{

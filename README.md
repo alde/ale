@@ -13,21 +13,31 @@ It'll use the configured regex to try to extract the timestamp from each log lin
 
 The following is the default config
 ```yaml
-address: 0.0.0.0 # IP address to bind
-port: 7654       # The Port to bind
+# IP address to bind
+address: 0.0.0.0
+# The Port to bind
+port: 7654
 
 loglevel: debug
-logformat: text  # Can be json or text
+# Can be json or text
+logformat: text
 
-database:         # database configuration
-  type: text      # text or datastore
-  namespace: null # required for datastore, Google Cloud Datastore namespace
-  project: null   # required for datastore, GCP project ID
+# database configuration
+database:
+  # text or datastore
+  type: text
+  # required for datastore, Google Cloud Datastore namespace
+  namespace: null
+  # required for datastore, GCP project ID
+  project: null
 
-owner: ${USER} # Owner of the service, shown in the /service-metadata endpoint
+# Owner of the service, shown in the /service-metadata endpoint
+owner: ${USER}
 
-log_pattern: ^.*?([\d{2}:\d{2}:\d{2}]+)<\/b>.*<\/span>\s(.*)$` # Regex used to extract the timestamp from the logs.
-                                                               # Should have two groups, timestamp and log line.
+# Regex used to extract the timestamp from the logs.
+# Should have two groups, timestamp and log line.
+# NOTE: currently broken
+log_pattern: .*\[([\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d*Z]*)\].*?\s(.*)$
 ```
 
 Configuration values can also be passed as environment variables, prefixed by `ALE`, for example `ALE_DATABASE_TYPE=datastore`.

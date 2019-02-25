@@ -63,7 +63,7 @@ func DefaultConfig() *Config {
 		},
 
 		Owner:      os.Getenv("USER"),
-		LogPattern: `^.*?([\d{2}:\d{2}:\d{2}]+)<\/b>.*<\/span>\s(.*)$`,
+		LogPattern: `.*\[([\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d*Z]*)\].*?\s(.*)$`,
 	}
 }
 
