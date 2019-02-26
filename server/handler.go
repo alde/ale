@@ -79,6 +79,10 @@ func (h *Handler) ProcessBuild() http.HandlerFunc {
 			handleError(err, w, "build_url is required")
 			return
 		}
+		if resp0, err := http.Head(request.BuildURL); err != nil || resp0.StatusCode != http.StatusOK {
+			writeJSON(http.StatusBadRequest, "error checking build_url", w)
+			return
+		}
 		if request.BuildID == "" {
 			request.BuildID = uuid.New().String()
 		}
