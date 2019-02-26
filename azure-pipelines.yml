@@ -44,6 +44,7 @@ steps:
 - script: |
     go vet $(glide novendor)
     golint -set_exit_status
+  continueOnError: 'true'
   workingDirectory: '$(modulePath)'
   displayName: 'vet and lint'
 
@@ -56,7 +57,6 @@ steps:
     cp junit.xml ./reports/junit.xml
     cp coverage.xml ./reports/coverage.xml
     cp index.html ./reports/index.html
-  continueOnError: 'true'
   workingDirectory: '$(modulePath)'
   displayName: 'Run unit tests'
 
