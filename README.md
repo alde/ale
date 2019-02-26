@@ -154,4 +154,3 @@ export JAVA_OPTS="${JAVA_OPTS} -Dfile.encoding=UTF-8 -Dcom.cloudbees.workflow.re
 
 ## TODO
 * Only crawl entries that were not previously marked as done
-* Don't create the database row before checking if the provided URL is valid
