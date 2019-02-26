@@ -36,7 +36,6 @@ owner: ${USER}
 
 # Regex used to extract the timestamp from the logs.
 # Should have two groups, timestamp and log line.
-# NOTE: currently broken
 log_pattern: .*\[([\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d*Z]*)\].*?\s(.*)$
 ```
 
