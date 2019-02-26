@@ -1,4 +1,4 @@
-# <img src="ale-logo.png" height="30px" alt="ale"> ALE
+# <img src="ale-logo2.png" height="100px" alt="ALE">
 [![Build Status](https://dev.azure.com/alde08/ale/_apis/build/status/alde.ale?branchName=master)](https://dev.azure.com/alde08/ale/_build/latest?definitionId=1&branchName=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/alde/ale)](https://goreportcard.com/report/github.com/alde/ale)
 
