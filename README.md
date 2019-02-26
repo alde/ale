@@ -36,7 +36,7 @@ owner: ${USER}
 
 # Regex used to extract the timestamp from the logs.
 # Should have two groups, timestamp and log line.
-log_pattern: .*\[([\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d*Z]*)\].*?\s(.*)$
+log_pattern: .*\[([\d{4}\-\d{2}\-\d{2}T\d{2}:\d{2}:\d{2}.\d*Z]*)\].*?\s(.*)$
 ```
 
 Configuration values can also be passed as environment variables, prefixed by `ALE`, for example `ALE_DATABASE_TYPE=datastore`.
@@ -108,7 +108,7 @@ response (sample):
             "name": "Preparation - Delete workspace when build is done",
             "log": [
                 {
-                    "timestamp": "09:46:24",
+                    "timestamp": "09:46:24", // Format will depend on your log and regex
                     "line": "[WS-CLEANUP] Deleting project workspace..."
                 },
                 {
