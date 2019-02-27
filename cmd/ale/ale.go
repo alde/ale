@@ -12,7 +12,7 @@ import (
 	"github.com/alde/ale/version"
 
 	"cloud.google.com/go/datastore"
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/braintree/manners"
 )
 

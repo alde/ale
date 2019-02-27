@@ -12,78 +12,65 @@ pool:
 variables:
   GOBIN:  '$(GOPATH)/bin' # Go binaries path
   GOROOT: '/usr/local/go1.11' # Go installation path
-  GOPATH: '$(system.defaultWorkingDirectory)/gopath' # Go workspace path
-  modulePath: '$(GOPATH)/src/github.com/$(build.repository.name)' # Path to the module's code
+  GOPATH: '$(Agent.HomeDirectory)/go' # Go workspace path
   LDFLAGS: -extldflags '-static' -X github.com/alde/ale/version.Version='$(Build.BuildNumber)' -X github.com/alde/ale/version.BuildDate=$(Build.BuildNumber)
   DOCKERTAG: 'alde/ale:$(Build.BuildNumber)'
 
 steps:
-- script: |
+- bash: |
     mkdir -p '$(GOBIN)'
     mkdir -p '$(GOPATH)/pkg'
-    mkdir -p '$(modulePath)'
     shopt -s extglob
     shopt -s dotglob
-    mv !(gopath) '$(modulePath)'
     echo '##vso[task.prependpath]$(GOBIN)'
     echo '##vso[task.prependpath]$(GOROOT)/bin'
   displayName: 'Set up the Go workspace'
 
-- script: |
+- bash: |
     go version
-    go get -u golang.org/x/lint/golint
-    go get -u github.com/jstemmer/go-junit-report
-    go get -u github.com/axw/gocov/gocov
-    go get -u github.com/AlekSi/gocov-xml
-    go get -u gopkg.in/matm/v1/gocov-html
-    go get -u github.com/Masterminds/glide
-    glide install
-  workingDirectory: '$(modulePath)'
+    go get golang.org/x/lint/golint
+    go get github.com/jstemmer/go-junit-report
+    go get github.com/axw/gocov/gocov
+    go get github.com/AlekSi/gocov-xml
+    go get github.com/alde/gocov-html
   displayName: 'Get dependencies'
 
-- script: |
-    go vet $(glide novendor)
+- bash: |
+    go vet ./...
     golint -set_exit_status
   continueOnError: 'true'
-  workingDirectory: '$(modulePath)'
   displayName: 'vet and lint'
 
-- script: |
-    go test $(glide novendor) -v -coverprofile=coverage.txt -covermode count 2>&1 | go-junit-report > junit.xml
-    gocov convert coverage.txt > coverage.json
-    gocov-xml < coverage.json > coverage.xml
-    gocov-html < coverage.json > index.html
+- bash: |
     mkdir reports
-    cp junit.xml ./reports/junit.xml
-    cp coverage.xml ./reports/coverage.xml
-    cp index.html ./reports/index.html
-  workingDirectory: '$(modulePath)'
+    go test ./... -v -coverprofile=./reports/coverage.txt -covermode count 2>&1 | go-junit-report > ./reports/junit.xml
+    gocov convert ./reports/coverage.txt > ./reports/coverage.json
+    gocov-xml < ./reports/coverage.json > ./reports/coverage.xml
+    gocov-html < ./reports/coverage.json > ./reports/index.html
   displayName: 'Run unit tests'
 
-- script: |
+- bash: |
     go build -v -ldflags "$(LDFLAGS)" -o ale github.com/alde/ale/cmd/ale
-  workingDirectory: '$(modulePath)'
   displayName: 'build'
 
-- script: |
+- bash: |
     CGO_ENABLED=0 GOOS=linux go build -ldflags "$(LDFLAGS)" -a -installsuffix cgo -o ale github.com/alde/ale/cmd/ale
     docker build -t $(DOCKERTAG) .
-  workingDirectory: '$(modulePath)'
   displayName: 'build docker image'
 
-- script: |
+- bash: |
     docker login -u $(dockerId) -p $(dockerPassword)
     docker push $(DOCKERTAG)
   displayName: 'push docker image'
-
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
 
 - task: PublishTestResults@2
   inputs:
     testRunner: JUnit
-    testResultsFiles: '$(modulePath)/reports/junit.xml'
+    testResultsFiles: './reports/junit.xml'
 
 - task: PublishCodeCoverageResults@1
   inputs:
     codeCoverageTool: 'cobertura'
-    summaryFileLocation: '$(modulePath)/reports/coverage.xml'
-    reportDirectory: '$(modulePath)/reports/'
+    summaryFileLocation: './reports/coverage.xml'
+    reportDirectory: './reports/'

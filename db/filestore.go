@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/alde/ale"
 	"github.com/alde/ale/config"
 	"github.com/kardianos/osext"
