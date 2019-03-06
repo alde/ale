@@ -159,6 +159,7 @@ func (c *Crawler) extractLogsFromFlowNode(node *ale.StageFlowNode, buildURL *url
 		LogLength: nodeLog.Length,
 		Logs:      c.splitLogs(nodeLog.Text),
 		StartTime: node.StartTimeMillis,
+		Description: node.ParameterDescription,
 	}
 }
 
