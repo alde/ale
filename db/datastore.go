@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"cloud.google.com/go/datastore"
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/alde/ale"
 	"github.com/alde/ale/config"
 )
