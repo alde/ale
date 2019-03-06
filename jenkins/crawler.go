@@ -146,21 +146,34 @@ func (c *Crawler) crawlExecutionLogs(execution *ale.JobExecution, buildURL *url.
 	}
 }
 
-func (c *Crawler) extractLogsFromFlowNode(node *ale.StageFlowNode, buildURL *url.URL, ename string) *ale.JenkinsStage {
+func (c *Crawler) extractLogsFromFlowNode(node *ale.StageFlowNode, buildURL *url.URL, ename string, flowNodesByID map[string]ale.StageFlowNode) *ale.JenkinsStage {
 	logLink := &url.URL{
 		Scheme: buildURL.Scheme,
 		Host:   buildURL.Host,
 		Path:   node.Links.Log.Href,
 	}
 	nodeLog := c.extractNodeLogs(logLink)
+	task := c.findTask(node, flowNodesByID)
 	return &ale.JenkinsStage{
-		Status:    nodeLog.NodeStatus,
-		Name:      fmt.Sprintf("%s - %s", ename, node.Name),
-		LogLength: nodeLog.Length,
-		Logs:      c.splitLogs(nodeLog.Text),
-		StartTime: node.StartTimeMillis,
+		Status:      nodeLog.NodeStatus,
+		Name:        fmt.Sprintf("%s - %s", ename, node.Name),
+		LogLength:   nodeLog.Length,
+		Logs:        c.splitLogs(nodeLog.Text),
+		StartTime:   node.StartTimeMillis,
+		Task:        task,
 		Description: node.ParameterDescription,
 	}
+}
+
+func (c *Crawler) findTask(node *ale.StageFlowNode, flowNodesByID map[string]ale.StageFlowNode) string {
+	if strings.Contains(node.ParameterDescription, "from task") {
+		return strings.TrimSpace(strings.Split(node.ParameterDescription, "from task")[1])
+	}
+	if len(node.Parents) == 0 {
+		return ""
+	}
+	var firstParent = flowNodesByID[node.Parents[0]]
+	return c.findTask(&firstParent, flowNodesByID)
 }
 
 func (c *Crawler) extractNodeLogs(logLink *url.URL) *ale.NodeLog {
@@ -180,6 +193,11 @@ func (c *Crawler) extractNodeLogs(logLink *url.URL) *ale.NodeLog {
 
 func (c *Crawler) crawlStageFlowNodesLogs(execution *ale.JobExecution, buildURL *url.URL) *ale.JenkinsStage {
 	logs := []*ale.JenkinsStage{}
+	var flowNodesByID = make(map[string]ale.StageFlowNode)
+	for _, node := range execution.StageFlowNodes {
+		flowNodesByID[node.ID] = node
+	}
+
 	for _, node := range execution.StageFlowNodes {
 		if node.Links.Log.Href == "" {
 			continue
@@ -193,7 +211,7 @@ func (c *Crawler) crawlStageFlowNodesLogs(execution *ale.JobExecution, buildURL 
 			"url":  logLink,
 			"node": node.ID,
 		}).Debug("crawling jenkins")
-		logs = append(logs, c.extractLogsFromFlowNode(&node, logLink, execution.Name))
+		logs = append(logs, c.extractLogsFromFlowNode(&node, logLink, execution.Name, flowNodesByID))
 	}
 	logrus.Debugf("%+v", logs)
 	return &ale.JenkinsStage{

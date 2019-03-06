@@ -46,11 +46,12 @@ type StageFlowNode struct {
 		Self Link `json:"self"`
 		Log  Link `json:"log"`
 	} `json:"_links"`
-	ID                   string `json:"id"`
-	Status               string `json:"status"`
-	Name                 string `json:"name"`
-	StartTimeMillis      int    `json:"startTimeMillis"`
-	ParameterDescription string `json:"parameterDescription"`
+	ID                   string   `json:"id"`
+	Status               string   `json:"status"`
+	Name                 string   `json:"name"`
+	StartTimeMillis      int      `json:"startTimeMillis"`
+	ParameterDescription string   `json:"parameterDescription"`
+	Parents              []string `json:"parentNodes"`
 }
 
 // NodeLog maps to the logs from a node
@@ -80,6 +81,7 @@ type JenkinsStage struct {
 	LogLength   int             `json:"log_length"`
 	SubStages   []*JenkinsStage `json:"substage"`
 	StartTime   int             `json:"start_time"`
+	Task        string 			`json:"task"`
 	Description string          `json:"description"`
 }
 
