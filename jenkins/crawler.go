@@ -146,7 +146,7 @@ func (c *Crawler) crawlExecutionLogs(execution *ale.JobExecution, buildURL *url.
 	}
 }
 
-func (c *Crawler) extractLogsFromFlowNode(node *ale.StageFlowNode, buildURL *url.URL, ename string, flowNodesByID map[string]ale.StageFlowNode) *ale.JenkinsStage {
+func (c *Crawler) extractLogsFromFlowNode(node *ale.StageFlowNode, buildURL *url.URL, ename string, flowNodesByID map[string]*ale.StageFlowNode) *ale.JenkinsStage {
 	logLink := &url.URL{
 		Scheme: buildURL.Scheme,
 		Host:   buildURL.Host,
@@ -165,7 +165,7 @@ func (c *Crawler) extractLogsFromFlowNode(node *ale.StageFlowNode, buildURL *url
 	}
 }
 
-func (c *Crawler) findTask(node *ale.StageFlowNode, flowNodesByID map[string]ale.StageFlowNode) string {
+func (c *Crawler) findTask(node *ale.StageFlowNode, flowNodesByID map[string]*ale.StageFlowNode) string {
 	if strings.Contains(node.ParameterDescription, "from task") {
 		return strings.TrimSpace(strings.Split(node.ParameterDescription, "from task")[1])
 	}
@@ -173,7 +173,7 @@ func (c *Crawler) findTask(node *ale.StageFlowNode, flowNodesByID map[string]ale
 		return ""
 	}
 	var firstParent = flowNodesByID[node.Parents[0]]
-	return c.findTask(&firstParent, flowNodesByID)
+	return c.findTask(firstParent, flowNodesByID)
 }
 
 func (c *Crawler) extractNodeLogs(logLink *url.URL) *ale.NodeLog {
@@ -193,9 +193,9 @@ func (c *Crawler) extractNodeLogs(logLink *url.URL) *ale.NodeLog {
 
 func (c *Crawler) crawlStageFlowNodesLogs(execution *ale.JobExecution, buildURL *url.URL) *ale.JenkinsStage {
 	logs := []*ale.JenkinsStage{}
-	var flowNodesByID = make(map[string]ale.StageFlowNode)
+	var flowNodesByID = make(map[string]*ale.StageFlowNode)
 	for _, node := range execution.StageFlowNodes {
-		flowNodesByID[node.ID] = node
+		flowNodesByID[node.ID] = &node
 	}
 
 	for _, node := range execution.StageFlowNodes {

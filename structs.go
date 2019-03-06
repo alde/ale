@@ -81,7 +81,7 @@ type JenkinsStage struct {
 	LogLength   int             `json:"log_length"`
 	SubStages   []*JenkinsStage `json:"substage"`
 	StartTime   int             `json:"start_time"`
-	Task        string 			`json:"task"`
+	Task        string          `json:"task"`
 	Description string          `json:"description"`
 }
 
