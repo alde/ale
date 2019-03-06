@@ -46,10 +46,11 @@ type StageFlowNode struct {
 		Self Link `json:"self"`
 		Log  Link `json:"log"`
 	} `json:"_links"`
-	ID              string `json:"id"`
-	Status          string `json:"status"`
-	Name            string `json:"name"`
-	StartTimeMillis int    `json:"startTimeMillis"`
+	ID                   string `json:"id"`
+	Status               string `json:"status"`
+	Name                 string `json:"name"`
+	StartTimeMillis      int    `json:"startTimeMillis"`
+	ParameterDescription string `json:"parameterDescription"`
 }
 
 // NodeLog maps to the logs from a node
@@ -73,12 +74,13 @@ type JenkinsData struct {
 
 // JenkinsStage holds the output from a given stage
 type JenkinsStage struct {
-	Status    string          `json:"status"`
-	Name      string          `json:"name"`
-	Logs      []*Log          `json:"log"`
-	LogLength int             `json:"log_length"`
-	SubStages []*JenkinsStage `json:"substage"`
-	StartTime int             `json:"start_time"`
+	Status      string          `json:"status"`
+	Name        string          `json:"name"`
+	Logs        []*Log          `json:"log"`
+	LogLength   int             `json:"log_length"`
+	SubStages   []*JenkinsStage `json:"substage"`
+	StartTime   int             `json:"start_time"`
+	Description string          `json:"description"`
 }
 
 // The Log struct maps to the response value for the structured log
