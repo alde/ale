@@ -197,7 +197,8 @@ func (c *Crawler) extractNodeLogs(logLink *url.URL) *ale.NodeLog {
 func (c *Crawler) crawlStageFlowNodesLogs(execution *ale.JobExecution, buildURL *url.URL) *ale.JenkinsStage {
 	logs := []*ale.JenkinsStage{}
 	var flowNodesByID = make(map[string]*ale.StageFlowNode)
-	for _, node := range execution.StageFlowNodes {
+	for i := range execution.StageFlowNodes {
+		node := execution.StageFlowNodes[i]
 		flowNodesByID[node.ID] = &node
 	}
 
