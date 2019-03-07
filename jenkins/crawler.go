@@ -173,6 +173,9 @@ func (c *Crawler) findTask(node *ale.StageFlowNode, flowNodesByID map[string]*al
 		return ""
 	}
 	var firstParent = flowNodesByID[node.Parents[0]]
+	if firstParent == nil {
+		return ""
+	}
 	return c.findTask(firstParent, flowNodesByID)
 }
 
