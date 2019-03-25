@@ -15,8 +15,7 @@ import (
 
 var (
 	cfg = &config.Config{
-		Database: config.DBConfig{
-			Type:      "datastore",
+		GoogleCloudDatastore: config.DatastoreConf{
 			Namespace: "test-namespace",
 			Project:   "gcp-project-1",
 		},
@@ -36,7 +35,7 @@ func Test_makeKey(t *testing.T) {
 
 	assert.Equal(t, "JenkinsBuild", key.Kind)
 	assert.Equal(t, "foobar", key.Name)
-	assert.Equal(t, cfg.Database.Namespace, key.Namespace)
+	assert.Equal(t, cfg.GoogleCloudDatastore.Namespace, key.Namespace)
 	assert.Nil(t, key.Parent)
 }
 

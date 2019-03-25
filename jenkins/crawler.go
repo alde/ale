@@ -35,7 +35,7 @@ type HTTPGetter interface {
 
 // NewCrawler instatiates a new crawler
 func NewCrawler(db db.Database, conf *config.Config) *Crawler {
-	r, err := regexp.Compile(conf.LogPattern)
+	r, err := regexp.Compile(conf.Crawler.LogPattern)
 	if err != nil {
 		logrus.WithError(err).Fatal("unable to create log matcher")
 	}

@@ -2,89 +2,83 @@ package config
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 
-	yaml "gopkg.in/yaml.v2"
-
+	"github.com/BurntSushi/toml"
 	"github.com/kardianos/osext"
-	"github.com/kelseyhightower/envconfig"
+	"github.com/sirupsen/logrus"
 )
+
+// DatastoreConf holds the config values for MySQL
+type DatastoreConf struct {
+	Namespace string
+	Project   string
+}
 
 // Config struct holds the current configuration
 type Config struct {
-	// Server settings
-	Address string `yaml:"address" envconfig:"address"`
-	Port    int    `yaml:"port" envconfig:"port"`
+	Server struct {
+		Address string
+		Port    int
+	}
 
-	// Logger settings
-	LogLevel  string `yaml:"loglevel" envconfig:"loglevel"`
-	LogFormat string `yaml:"logformat" envconfig:"logformat"`
+	Logging struct {
+		Format string
+		Level  string
+	}
 
-	// GCS Bucket
-	Database DBConfig `yaml:"database"`
+	Metadata map[string]string
 
-	// Service settings
-	// - Owner of the service. For example the team running it.
-	//   Defaulted to the current user.
-	Owner string `yaml:"owner" envconfig:"owner"`
+	GoogleCloudDatastore DatastoreConf
 
-	// LogPattern used to separate timestamp and log lines
-	LogPattern string `yaml:"log_pattern" envconfig:"LOG_PATTERN"`
-}
-
-// DBConfig represents the Database Configuration object
-type DBConfig struct {
-	Type      string `yaml:"type" envconfig:"type"`
-	Project   string `yaml:"project" envconfig:"project"`
-	Namespace string `yaml:"namespace" envconfig:"namespace"`
+	Crawler struct {
+		LogPattern string
+	}
 }
 
 // Initialize a new Config
 func Initialize(configFile string) *Config {
 	cfg := DefaultConfig()
 	ReadConfigFile(cfg, getConfigFilePath(configFile))
-	ReadEnvironment(cfg)
 
 	return cfg
 }
 
 // DefaultConfig returns a Config struct with default values
 func DefaultConfig() *Config {
-	return &Config{
-		Address: "0.0.0.0",
-		Port:    7654,
+	cfg := &Config{}
 
-		LogLevel:  "debug",
-		LogFormat: "text",
+	cfg.Server.Address = "0.0.0.0"
+	cfg.Server.Port = 7654
 
-		Database: DBConfig{
-			Type: "file",
-		},
+	cfg.Logging.Format = "text"
+	cfg.Logging.Level = "DEBUG"
 
-		Owner:      os.Getenv("USER"),
-		LogPattern: `.*\[([\d{4}\-\d{2}\-\d{2}T\d{2}:\d{2}:\d{2}.\d*Z]*)\].*?\s(.*)$`,
-	}
+	cfg.Metadata = make(map[string]string)
+	cfg.Metadata["owner"] = os.Getenv("USER")
+
+	cfg.Crawler.LogPattern = `.*\[([\d{4}\-\d{2}\-\d{2}T\d{2}:\d{2}:\d{2}.\d*Z]*)\].*?\s(.*)$`
+
+	return cfg
 }
 
 // getConfigFilePath returns the location of the config file in order of priority:
 // 1 ) --config commandline flag
 // 1 ) File in same directory as the executable
-// 2 ) Global file in /etc/ale/config.yml
+// 2 ) Global file in /etc/ale/config.toml
 func getConfigFilePath(configPath string) string {
 	if configPath != "" {
-		path := fmt.Sprintf("%s/config.yml", configPath)
-		if _, err := os.Open(path); err == nil {
-			return path
+		if _, err := os.Stat(configPath); err == nil {
+			return configPath
 		}
-		panic(fmt.Sprintf("Unable to open %s.", path))
+		panic(fmt.Sprintf("Unable to open %s.", configPath))
 	}
 	path, _ := osext.ExecutableFolder()
-	path = fmt.Sprintf("%s/config.yml", path)
+	path = fmt.Sprintf("%s/config.toml", path)
 	if _, err := os.Open(path); err == nil {
 		return path
 	}
-	globalPath := "/etc/ale/config.yml"
+	globalPath := "/etc/ale/config.toml"
 	if _, err := os.Open(globalPath); err == nil {
 		return globalPath
 	}
@@ -94,17 +88,12 @@ func getConfigFilePath(configPath string) string {
 
 // ReadConfigFile reads the config file and merges with DefaultConfig, taking precedence
 func ReadConfigFile(cfg *Config, path string) {
-	file, err := os.Open(path)
+	_, err := os.Stat(path)
 	if err != nil {
 		return
 	}
 
-	configFile, _ := ioutil.ReadAll(file)
-	yaml.Unmarshal(configFile, cfg)
-}
-
-// ReadEnvironment takes precedence over any configs set with settings provided
-// from the environment
-func ReadEnvironment(cfg *Config) {
-	envconfig.Process("ALE", cfg)
+	if _, err := toml.DecodeFile(path, cfg); err != nil {
+		logrus.WithError(err).Fatal("unable to read config")
+	}
 }

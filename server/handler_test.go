@@ -21,7 +21,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var cfg0 = &config.Config{}
+var cfg0 = config.DefaultConfig()
 
 func Test_ServiceMetadata(t *testing.T) {
 	m := mux.NewRouter()
@@ -40,7 +40,7 @@ func Test_ServiceMetadata(t *testing.T) {
 	assert.Nil(t, err)
 
 	expectedKeys := []string{
-		"service_name", "service_version", "description", "owner", "database",
+		"service_name", "service_version", "description", "owner", "service_version", "build_date",
 	}
 
 	for _, k := range expectedKeys {
