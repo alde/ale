@@ -1,16 +1,13 @@
 package db
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
 
-	"github.com/sirupsen/logrus"
 	"github.com/alde/ale"
-	"github.com/alde/ale/config"
-	"github.com/kardianos/osext"
+	"github.com/sirupsen/logrus"
 )
 
 // Filestore is a hacky filesystem "database". To be removed.
@@ -19,11 +16,7 @@ type Filestore struct {
 }
 
 // NewFilestore creates a new Datastore database object
-func NewFilestore(ctx context.Context, cfg *config.Config) (Database, error) {
-	folder, err := osext.ExecutableFolder()
-	if err != nil {
-		return nil, err
-	}
+func NewFilestore(folder string) (Database, error) {
 	return &Filestore{
 		folder: folder,
 	}, nil

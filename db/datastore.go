@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"cloud.google.com/go/datastore"
-	"github.com/sirupsen/logrus"
 	"github.com/alde/ale"
 	"github.com/alde/ale/config"
+	"github.com/sirupsen/logrus"
 )
 
 // Datastore is a Google Cloud Datastore implementation of the Database interface
@@ -28,7 +28,7 @@ func NewDatastore(ctx context.Context, cfg *config.Config, dsClient datastoreInt
 	return &Datastore{
 		Client:    dsClient,
 		ctx:       ctx,
-		namespace: cfg.Database.Namespace,
+		namespace: cfg.GoogleCloudDatastore.Namespace,
 	}, nil
 }
 

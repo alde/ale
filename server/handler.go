@@ -7,8 +7,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/sirupsen/logrus"
 	"github.com/alde/ale/db"
+	"github.com/sirupsen/logrus"
 
 	"github.com/alde/ale/config"
 	"github.com/alde/ale/jenkins"
@@ -32,14 +32,11 @@ func NewHandler(cfg *config.Config, db db.Database) *Handler {
 // ServiceMetadata displays hopefully useful information about the service
 func (h *Handler) ServiceMetadata() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		data := make(map[string]interface{})
-
-		data["owner"] = h.config.Owner
+		data := h.config.Metadata
 		data["description"] = "Jenkins Build Information"
 		data["service_name"] = "ale"
 		data["service_version"] = version.Version
-		data["database"] = h.config.Database.Type
-
+		data["build_date"] = version.BuildDate
 		writeJSON(http.StatusOK, data, w)
 	}
 }
