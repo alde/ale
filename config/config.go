@@ -9,10 +9,20 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// DatastoreConf holds the config values for MySQL
+// DatastoreConf holds the config values for Datastore
 type DatastoreConf struct {
 	Namespace string
 	Project   string
+}
+
+// SQLConf holds the config values for SQL databases
+type SQLConf struct {
+	Username     string
+	PasswordFile string
+	Host         string
+	Port         int
+	Database     string
+	DisableSSL   bool
 }
 
 // Config struct holds the current configuration
@@ -30,6 +40,7 @@ type Config struct {
 	Metadata map[string]string
 
 	GoogleCloudDatastore DatastoreConf
+	PostgreSQL           SQLConf
 
 	Crawler struct {
 		LogPattern string

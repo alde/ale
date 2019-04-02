@@ -9,6 +9,7 @@ import (
 
 	"github.com/alde/ale/config"
 	"github.com/alde/ale/db"
+	"github.com/alde/ale/db/postgres"
 	"github.com/alde/ale/server"
 	"github.com/alde/ale/version"
 
@@ -41,11 +42,24 @@ func main() {
 }
 
 func setupDatabase(ctx context.Context, cfg *config.Config) db.Database {
+	if (config.SQLConf{}) != cfg.PostgreSQL {
+		logrus.WithFields(logrus.Fields{
+			"host":     cfg.PostgreSQL.Host,
+			"port":     cfg.PostgreSQL.Port,
+			"username": cfg.PostgreSQL.Username,
+		}).Info("configuring postgres connection")
+		db, err := postgres.New(cfg)
+		if err != nil {
+			logrus.WithError(err).Fatal("unable to create postgres client")
+		}
+		return db
+	}
+
 	if (config.DatastoreConf{}) != cfg.GoogleCloudDatastore {
 		logrus.WithFields(logrus.Fields{
 			"namespace": cfg.GoogleCloudDatastore.Namespace,
 			"project":   cfg.GoogleCloudDatastore.Project,
-		}).Info("configuring database connection")
+		}).Info("configuring datastore connection")
 		ds, err := datastore.NewClient(ctx, cfg.GoogleCloudDatastore.Project)
 		if err != nil {
 			logrus.WithError(err).Fatal("unable to initialize datastore library")
@@ -59,6 +73,7 @@ func setupDatabase(ctx context.Context, cfg *config.Config) db.Database {
 		}
 		return database
 	}
+
 	logrus.Info("setting up filesystem pretend database")
 	folder, err := osext.ExecutableFolder()
 	if err != nil {

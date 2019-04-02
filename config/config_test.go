@@ -35,6 +35,21 @@ func Test_ReadConfigFile(t *testing.T) {
 	assert.Equal(t, "ale-jenkinslog", c.GoogleCloudDatastore.Namespace)
 }
 
+func Test_ReadConfigFilePostgres(t *testing.T) {
+	c := DefaultConfig()
+	wd, _ := os.Getwd()
+
+	ReadConfigFile(c, fmt.Sprintf("%s/config_psql_test.toml", wd))
+
+	assert.Equal(t, DatastoreConf{}, c.GoogleCloudDatastore)
+	assert.Equal(t, "postgres_user", c.PostgreSQL.Username)
+	assert.Equal(t, "/path/to/file/with/password", c.PostgreSQL.PasswordFile)
+	assert.Equal(t, "postgres.local", c.PostgreSQL.Host)
+	assert.Equal(t, 5432, c.PostgreSQL.Port)
+	assert.Equal(t, "ale_database_name", c.PostgreSQL.Database)
+	assert.Equal(t, false, c.PostgreSQL.DisableSSL)
+}
+
 func Test_ReadConfigFile_Error(t *testing.T) {
 	c := DefaultConfig()
 	d := DefaultConfig()
