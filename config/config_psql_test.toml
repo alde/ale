@@ -1,0 +1,21 @@
+[server]
+address = "127.0.0.1"
+port = 8080
+
+[logging]
+format = "json"
+level = "INFO"
+
+[metadata]
+owner = "the_team"
+
+[crawler]
+logpattern = '''.*\[([\d{4}\-\d{2}\-\d{2}T\d{2}:\d{2}:\d{2}.\d*Z]*)\].*?\s(.*)$'''
+
+[PostgreSQL]
+username = "postgres_user"
+passwordfile = "/path/to/file/with/password"
+host = "postgres.local"
+Port = 5432
+database = "ale_database_name"
+disable_ssl = true

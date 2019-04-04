@@ -24,7 +24,6 @@ format = "text" # Can be json or text
 [metadata] # metadata will be presented in the service-metadata route
 owner = "${USER}" # Owner of the service
 
-
 [crawler]
 # Regex used to extract the timestamp from the logs.
 # Should have two groups, timestamp and log line.
@@ -32,6 +31,27 @@ logpattern = '''.*\[([\d{4}\-\d{2}\-\d{2}T\d{2}:\d{2}:\d{2}.\d*Z]*)\].*?\s(.*)$'
 ```
 
 See [config_test.toml](config/config_test.toml) for more configuration options.
+
+#### Postgres SQL
+To use psql as a backend, add a config similar to:
+```toml
+[PostgreSQL]
+username = "postgres_user"
+passwordfile = "/path/to/file/with/password"
+host = "postgres.local"
+Port = 5432
+database = "ale_database_name"
+disable_ssl = true
+```
+
+#### Datastore
+To use Google Datastore as a backend, add a config similar to:
+```toml
+[GoogleCloudDatastore]
+namespace = "ale-jenkinslog"
+project = "my-gcs-project"
+```
+
 
 ## Flow
 
