@@ -65,7 +65,7 @@ func (c *Crawler) updateState(buildID string) {
 		case jdata := <-c.stateChannel:
 			logrus.Debug("got request to update the state")
 			if err := c.database.Put(jdata, buildID); err != nil {
-				logrus.WithError(err).Error("unable to add to database")
+				logrus.WithField("build_id", buildID).WithError(err).Error("unable to add to database")
 			}
 			logrus.WithField("build_id", buildID).Info("database updated")
 
@@ -217,7 +217,6 @@ func (c *Crawler) crawlStageFlowNodesLogs(execution *ale.JobExecution, buildURL 
 		}).Debug("crawling jenkins")
 		logs = append(logs, c.extractLogsFromFlowNode(&node, logLink, execution.Name, flowNodesByID))
 	}
-	logrus.Debugf("%+v", logs)
 	return &ale.JenkinsStage{
 		Status:    execution.Status,
 		Name:      execution.Name,
