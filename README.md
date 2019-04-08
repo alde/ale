@@ -41,7 +41,7 @@ passwordfile = "/path/to/file/with/password"
 host = "postgres.local"
 Port = 5432
 database = "ale_database_name"
-disable_ssl = true
+disablessl = true
 ```
 
 #### Datastore
