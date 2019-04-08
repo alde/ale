@@ -47,7 +47,7 @@ func Test_ReadConfigFilePostgres(t *testing.T) {
 	assert.Equal(t, "postgres.local", c.PostgreSQL.Host)
 	assert.Equal(t, 5432, c.PostgreSQL.Port)
 	assert.Equal(t, "ale_database_name", c.PostgreSQL.Database)
-	assert.Equal(t, false, c.PostgreSQL.DisableSSL)
+	assert.Equal(t, true, c.PostgreSQL.DisableSSL)
 }
 
 func Test_ReadConfigFile_Error(t *testing.T) {
