@@ -88,12 +88,17 @@ func setupDatabase(ctx context.Context, cfg *config.Config) db.Database {
 
 func setupLogging(cfg *config.Config) {
 	if cfg.Logging.Format == "json" {
-		logrus.SetFormatter(&logrus.JSONFormatter{})
+		logrus.SetFormatter(&logrus.JSONFormatter{
+			FieldMap: logrus.FieldMap{
+				logrus.FieldKeyLevel: "severity",
+			},
+		})
 	}
 	level, err := logrus.ParseLevel(cfg.Logging.Level)
 	if err != nil {
 		level = logrus.InfoLevel
 	}
+	logrus.SetOutput(os.Stdout)
 	logrus.SetLevel(level)
 }
 
