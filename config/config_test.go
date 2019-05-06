@@ -33,6 +33,10 @@ func Test_ReadConfigFile(t *testing.T) {
 	assert.NotEqual(t, DatastoreConf{}, c.GoogleCloudDatastore)
 	assert.Equal(t, "my-gcs-project", c.GoogleCloudDatastore.Project)
 	assert.Equal(t, "ale-jenkinslog", c.GoogleCloudDatastore.Namespace)
+
+	assert.Equal(t, "my-gcs-project", c.Pubsub.Project)
+	assert.Equal(t, "build-events-topic", c.Pubsub.Topic)
+	assert.Equal(t, "ale-subscription", c.Pubsub.Subscription)
 }
 
 func Test_ReadConfigFilePostgres(t *testing.T) {

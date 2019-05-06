@@ -23,6 +23,9 @@ func NewRouter(cfg *config.Config, db db.Database) *mux.Router {
 			Name(route.Name).
 			Handler(prometheus.InstrumentHandler(route.Name, route.Handler))
 	}
+	if (config.PubsubConf{}) != cfg.Pubsub {
+		go h.SetupPubsub(cfg)
+	}
 	return router
 }
 

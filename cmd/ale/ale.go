@@ -14,6 +14,7 @@ import (
 	"github.com/alde/ale/version"
 
 	"cloud.google.com/go/datastore"
+
 	"github.com/braintree/manners"
 	"github.com/kardianos/osext"
 	"github.com/sirupsen/logrus"
