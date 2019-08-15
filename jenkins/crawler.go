@@ -143,6 +143,7 @@ func (c *Crawler) crawlExecutionLogs(execution *ale.JobExecution, buildURL *url.
 		LogLength: nodeLog.Length,
 		Logs:      c.splitLogs(nodeLog.Text),
 		StartTime: execution.StartTimeMillis,
+		Duration:  execution.DurationMillis,
 	}
 }
 
@@ -160,6 +161,7 @@ func (c *Crawler) extractLogsFromFlowNode(node *ale.StageFlowNode, buildURL *url
 		LogLength:   nodeLog.Length,
 		Logs:        c.splitLogs(nodeLog.Text),
 		StartTime:   node.StartTimeMillis,
+		Duration:    node.DurationMillis,
 		Task:        task,
 		Description: node.ParameterDescription,
 	}
@@ -222,6 +224,7 @@ func (c *Crawler) crawlStageFlowNodesLogs(execution *ale.JobExecution, buildURL 
 		Name:      execution.Name,
 		SubStages: logs,
 		StartTime: execution.StartTimeMillis,
+		Duration:  execution.DurationMillis,
 	}
 }
 
@@ -245,11 +248,16 @@ func (c *Crawler) extractLogs(jd *ale.JobData, buildID string, buildURL *url.URL
 	})
 
 	return &ale.JenkinsData{
-		Status:  jd.Status,
-		Name:    jd.Name,
-		ID:      jd.ID,
-		BuildID: buildID,
-		Stages:  stages,
+		Status:        jd.Status,
+		Name:          jd.Name,
+		ID:            jd.ID,
+		BuildID:       buildID,
+		Stages:        stages,
+		Duration:      jd.DurationMillis,
+		StartTime:     jd.StartTimeMillis,
+		EndTime:       jd.EndTimeMillis,
+		QueueDuration: jd.QueueDurationMillis,
+		PauseDuration: jd.PauseDurationMillis,
 	}
 }
 
