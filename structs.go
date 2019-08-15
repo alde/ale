@@ -11,10 +11,15 @@ type JobData struct {
 		Self      Link `json:"self"`
 		Artifacts Link `json:"artifacts"`
 	} `json:"_links"`
-	Stages []JobStage `json:"stages"`
-	Status string     `json:"status"`
-	Name   string     `json:"name"`
-	ID     string     `json:"id"`
+	Stages              []JobStage `json:"stages"`
+	Status              string     `json:"status"`
+	Name                string     `json:"name"`
+	ID                  string     `json:"id"`
+	StartTimeMillis     int        `json:"startTimeMillis"`
+	EndTimeMillis       int        `json:"endTimeMillis"`
+	DurationMillis      int        `json:"durationMillis"`
+	QueueDurationMillis int        `json:"queueDurationMillis"`
+	PauseDurationMillis int        `json:"pauseDurationMillis"`
 }
 
 // JobStage holds information about a stage of a job
@@ -37,6 +42,7 @@ type JobExecution struct {
 	Status          string          `json:"status"`
 	Name            string          `json:"name"`
 	StartTimeMillis int             `json:"startTimeMillis"`
+	DurationMillis  int             `json:"durationMillis"`
 	StageFlowNodes  []StageFlowNode `json:"stageFlowNodes"`
 }
 
@@ -50,6 +56,7 @@ type StageFlowNode struct {
 	Status               string   `json:"status"`
 	Name                 string   `json:"name"`
 	StartTimeMillis      int      `json:"startTimeMillis"`
+	DurationMillis       int      `json:"durationMillis"`
 	ParameterDescription string   `json:"parameterDescription"`
 	Parents              []string `json:"parentNodes"`
 }
@@ -66,11 +73,16 @@ type NodeLog struct {
 
 // JenkinsData is the topmost level of the flattened structure stored in the database
 type JenkinsData struct {
-	Stages  []*JenkinsStage `json:"stages"`
-	Status  string          `json:"status"`
-	Name    string          `json:"name"`
-	ID      string          `json:"id"`
-	BuildID string          `json:"build_id"`
+	Stages        []*JenkinsStage `json:"stages"`
+	Status        string          `json:"status"`
+	Name          string          `json:"name"`
+	ID            string          `json:"id"`
+	BuildID       string          `json:"build_id"`
+	StartTime     int             `json:"start_time"`
+	EndTime       int             `json:"end_time"`
+	Duration      int             `json:"build_duration"`
+	QueueDuration int             `json:"queue_duration"`
+	PauseDuration int             `json:"pause_duration"`
 }
 
 // JenkinsStage holds the output from a given stage
@@ -81,6 +93,7 @@ type JenkinsStage struct {
 	LogLength   int             `json:"log_length"`
 	SubStages   []*JenkinsStage `json:"substage"`
 	StartTime   int             `json:"start_time"`
+	Duration    int             `json:"duration"`
 	Task        string          `json:"task"`
 	Description string          `json:"description"`
 }
