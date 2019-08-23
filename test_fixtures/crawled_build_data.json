@@ -1,0 +1,299 @@
+{
+  "status": "SUCCESS",
+  "name": "#22958 - tingle-tests/web-yarn-test - refs/pull/572/merge",
+  "id": "22958",
+  "build_id": "22958",
+  "start_time": 1566476327177,
+  "end_time": 1566476531042,
+  "build_duration": 203865,
+  "queue_duration": 24,
+  "pause_duration": 0,
+  "stages": [
+    {
+      "status": "SUCCESS",
+      "name": "[PRE] Preparation",
+      "log": null,
+      "log_length": 0,
+      "substage": [
+        {
+          "status": "SUCCESS",
+          "name": "[PRE] Preparation - Delete workspace when build is done",
+          "log": [
+            {
+              "timestamp": "2019-08-22T12:18:50.968Z",
+              "line": "[WS-CLEANUP] Deleting project workspace..."
+            },
+            {
+              "timestamp": "2019-08-22T12:18:50.968Z",
+              "line": "[WS-CLEANUP] Deferred wipeout is used..."
+            },
+            {
+              "timestamp": "2019-08-22T12:18:50.973Z",
+              "line": "[WS-CLEANUP] done"
+            }
+          ],
+          "log_length": 183,
+          "substage": null,
+          "start_time": 1566476330966,
+          "duration": 26,
+          "task": "",
+          "description": ""
+        },
+        {
+          "status": "SUCCESS",
+          "name": "[PRE] Preparation - gcloud auth",
+          "log": [
+            {
+              "timestamp": "2019-08-22T12:18:51.551Z",
+              "line": "Activated service account credentials for: [build-agent@xpn-tingle-1.iam.gserviceaccount.com]"
+            }
+          ],
+          "log_length": 121,
+          "substage": null,
+          "start_time": 1566476330992,
+          "duration": 565,
+          "task": "",
+          "description": "#!/bin/bash -e\ngcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS"
+        },
+        {
+          "status": "SUCCESS",
+          "name": "[PRE] Preparation - gcloud configure docker",
+          "log": [
+            {
+              "timestamp": "2019-08-22T12:18:52.115Z",
+              "line": "gcloud credential helpers already registered correctly."
+            }
+          ],
+          "log_length": 83,
+          "substage": null,
+          "start_time": 1566476331557,
+          "duration": 559,
+          "task": "",
+          "description": "#!/bin/bash -e\ngcloud auth configure-docker"
+        }
+      ],
+      "start_time": 1566476330961,
+      "duration": 1176,
+      "task": "",
+      "description": ""
+    },
+    {
+      "status": "SUCCESS",
+      "name": "[PRE] Checkout",
+      "log": null,
+      "log_length": 0,
+      "substage": [
+        {
+          "status": "SUCCESS",
+          "name": "[PRE] Checkout - shallow clone of master",
+          "log": [
+            {
+              "timestamp": "2019-08-22T12:18:52.415Z",
+              "line": "+ git clone -b master --depth 50 git@ghe.spotify.net:tingle-tests/web-yarn-test.git ."
+            },
+            {
+              "timestamp": "2019-08-22T12:18:52.415Z",
+              "line": "Cloning into '.'..."
+            }
+          ],
+          "log_length": 160,
+          "substage": null,
+          "start_time": 1566476332157,
+          "duration": 3490,
+          "task": "",
+          "description": ""
+        },
+        {
+          "status": "SUCCESS",
+          "name": "[PRE] Checkout - git fetch pull-request",
+          "log": [
+            {
+              "timestamp": "2019-08-22T12:18:55.906Z",
+              "line": "+ git fetch --depth 50 origin pull/572/merge:pr"
+            },
+            {
+              "timestamp": "2019-08-22T12:18:56.817Z",
+              "line": "From ghe.spotify.net:tingle-tests/web-yarn-test"
+            },
+            {
+              "timestamp": "2019-08-22T12:18:56.817Z",
+              "line": " * [new ref]         refs/pull/572/merge -\u0026gt; pr"
+            }
+          ],
+          "log_length": 224,
+          "substage": null,
+          "start_time": 1566476335647,
+          "duration": 1174,
+          "task": "",
+          "description": "git fetch --depth 50 origin pull/572/merge:pr"
+        },
+        {
+          "status": "SUCCESS",
+          "name": "[PRE] Checkout - git checkout pull-request",
+          "log": [
+            {
+              "timestamp": "2019-08-22T12:18:57.079Z",
+              "line": "+ git checkout pr"
+            },
+            {
+              "timestamp": "2019-08-22T12:18:57.079Z",
+              "line": "Switched to branch 'pr'"
+            }
+          ],
+          "log_length": 96,
+          "substage": null,
+          "start_time": 1566476336821,
+          "duration": 261,
+          "task": "",
+          "description": "git checkout pr"
+        },
+        {
+          "status": "SUCCESS",
+          "name": "[PRE] Checkout - update and fetch submodules",
+          "log": [
+            {
+              "timestamp": "2019-08-22T12:18:57.339Z",
+              "line": "+ git submodule update --init --recursive"
+            }
+          ],
+          "log_length": 69,
+          "substage": null,
+          "start_time": 1566476337082,
+          "duration": 267,
+          "task": "",
+          "description": "git submodule update --init --recursive"
+        }
+      ],
+      "start_time": 1566476332151,
+      "duration": 5200,
+      "task": "",
+      "description": ""
+    },
+    {
+      "status": "SUCCESS",
+      "name": "[PRE] Converge state",
+      "log": null,
+      "log_length": 0,
+      "substage": [],
+      "start_time": 1566476337365,
+      "duration": 108,
+      "task": "",
+      "description": ""
+    },
+    {
+      "status": "SUCCESS",
+      "name": "[PRE] Update .dockerignore",
+      "log": null,
+      "log_length": 0,
+      "substage": [],
+      "start_time": 1566476337483,
+      "duration": 10,
+      "task": "",
+      "description": ""
+    },
+    {
+      "status": "SUCCESS",
+      "name": "[PRE] Preparing Pipelines",
+      "log": null,
+      "log_length": 0,
+      "substage": [
+        {
+          "status": "SUCCESS",
+          "name": "[PRE] Preparing Pipelines - generate build-info-effective.yaml",
+          "log": [
+            {
+              "timestamp": "2019-08-22T12:18:57.814Z",
+              "line": "+ docker run --rm --dns-search google.internal --dns-search spotify.net -w /var/jenkins_home/workspace/tingle.22958/workspace -e DOCKER_HOST=tcp://10.99.0.1:2375 -e HOME=/var/jenkins_home/workspace/tingle.22958/workspace -e GOOGLE_APPLICATION_CREDENTIALS=/.application_default_credentials.json -e TERM=xterm-256color -e NPM_CONFIG_REGISTRY=\u003ca href='https://artifactory.spotify.net/artifactory/api/npm/virtual-npm'\u003ehttps://artifactory.spotify.net/artifactory/api/npm/virtual-npm\u003c/a\u003e --mount type=bind,source=/var/jenkins_home/workspace/tingle.22958/workspace,target=/var/jenkins_home/workspace/tingle.22958/workspace gcr.io/action-containers/alchemist:1.0.0 tingle-tests web-yarn-test 03e05420017c41882628ecd15cb45d0a40bbf8ca -o build-info-effective.yaml"
+            }
+          ],
+          "log_length": 703,
+          "substage": null,
+          "start_time": 1566476337556,
+          "duration": 3490,
+          "task": "",
+          "description": ""
+        },
+        {
+          "status": "SUCCESS",
+          "name": "[PRE] Preparing Pipelines - Print Message",
+          "log": [
+            {
+              "timestamp": "2019-08-22T12:19:01.050Z",
+              "line": "Effective build-info:"
+            },
+            {
+              "timestamp": "2019-08-22T12:19:01.050Z",
+              "line": "---"
+            },
+            {
+              "timestamp": "2019-08-22T12:19:01.050Z",
+              "line": "version: \"2\""
+            },
+            {
+              "timestamp": "2019-08-22T12:19:01.050Z",
+              "line": "timeout: 30"
+            },
+            {
+              "timestamp": "2019-08-22T12:19:01.050Z",
+              "line": "pipelines:"
+            },
+            {
+              "timestamp": "2019-08-22T12:19:01.050Z",
+              "line": "- pipeline: \"Review build\""
+            },
+            {
+              "timestamp": "2019-08-22T12:19:01.050Z",
+              "line": "  ref: \"pr/.*/merge\""
+            },
+            {
+              "timestamp": "2019-08-22T12:19:01.050Z",
+              "line": "  stages:"
+            },
+            {
+              "timestamp": "2019-08-22T12:19:01.050Z",
+              "line": "  - stage: \"Install dependencies\""
+            },
+            {
+              "timestamp": "2019-08-22T12:19:01.050Z",
+              "line": "    tasks:"
+            },
+            {
+              "timestamp": "2019-08-22T12:19:01.050Z",
+              "line": "    - task: \"install\""
+            },
+            {
+              "timestamp": "2019-08-22T12:19:01.050Z",
+              "line": "      steps:"
+            },
+            {
+              "timestamp": "2019-08-22T12:19:01.050Z",
+              "line": "      - action: \"library/node:10.15.3\""
+            },
+            {
+              "timestamp": "2019-08-22T12:19:01.050Z",
+              "line": "        args:"
+            },
+            {
+              "timestamp": "2019-08-22T12:19:01.050Z",
+              "line": "        - \"yarn\""
+            },
+            {
+              "timestamp": "2019-08-22T12:19:01.050Z",
+              "line": "        - \"install\""
+            }
+          ],
+          "log_length": 6064,
+          "substage": null,
+          "start_time": 1566476341049,
+          "duration": 77,
+          "task": "",
+          "description": ""
+        }
+      ],
+      "start_time": 1566476337515,
+      "duration": 18551,
+      "task": "",
+      "description": ""
+    }
+  ]
+}
