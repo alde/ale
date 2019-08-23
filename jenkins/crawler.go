@@ -60,7 +60,32 @@ func (c *Crawler) CrawlJenkins(buildURI string, buildID string) {
 
 	go c.updateState(buildID)
 	go c.crawlBuild(uri)
+	go c.logBuildLogs(buildID, uri)
+
 	c.processChannel <- buildID
+}
+
+func (c *Crawler) logBuildLogs(buildID string, uri *url.URL) {
+	for {
+		select {
+		case jlogs := <-c.logChannel:
+			c.log.Debug("got request to log the jenkins build logs")
+			for _, jlog := range jlogs {
+				c.printBuildLog(jlog, uri, buildID)
+			}
+		}
+	}
+}
+
+func (c *Crawler) printBuildLog(jlog *ale.Log, uri *url.URL, buildID string) {
+	jsonData, err := json.Marshal(jlog)
+	if err != nil {
+		c.log.WithError(err).Error("unable to parse log entry")
+	}
+	c.log.WithFields(logrus.Fields{
+		"uri":      uri.String(),
+		"build_id": buildID,
+	}).Info(string(jsonData))
 }
 
 func (c *Crawler) extractBuildLogs(jdata *ale.JenkinsData) []*ale.Log {

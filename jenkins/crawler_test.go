@@ -88,6 +88,30 @@ func Test_ExtractBuildLogs(t *testing.T) {
 	assert.Equal(t, expected, actual)
 }
 
+func Test_PrintBuildLog(t *testing.T) {
+	hook := test.NewLocal(c.log)
+
+	var jlogs []*ale.Log
+	loadFixture(t, "extracted_build_logs.json", &jlogs)
+
+	buildId := "22958"
+	uri, _ := url.Parse(fmt.Sprintf("/job/tingle/%s/wfapi/describe", buildId))
+
+	for _, jlog := range jlogs {
+		c.printBuildLog(jlog, uri, buildId)
+	}
+
+	assert.Equal(t, logrus.InfoLevel, hook.LastEntry().Level)
+	for idx, entry := range hook.AllEntries() {
+		expected := jlogs[idx]
+		var actual *ale.Log
+		_ = json.Unmarshal([]byte(entry.Message), &actual)
+		assert.Equal(t, expected, actual)
+	}
+	hook.Reset()
+	assert.Nil(t, hook.LastEntry())
+}
+
 func loadFixture(t *testing.T, name string, v interface{}) {
 	path := filepath.Join("../test_fixtures", name)
 	bytes, err := ioutil.ReadFile(path)
