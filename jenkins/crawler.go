@@ -24,6 +24,7 @@ type Crawler struct {
 	config         *config.Config
 	processChannel chan string
 	stateChannel   chan *ale.JenkinsData
+	logChannel     chan []*ale.Log
 	httpClient     HTTPGetter
 	r              *regexp.Regexp
 	log            *logrus.Logger
@@ -45,6 +46,7 @@ func NewCrawler(db db.Database, conf *config.Config) *Crawler {
 		config:         conf,
 		processChannel: make(chan string, 1),
 		stateChannel:   make(chan *ale.JenkinsData, 1),
+		logChannel:     make(chan []*ale.Log, 1),
 		httpClient:     http.DefaultClient,
 		r:              r,
 		log:            logrus.New(),
@@ -59,6 +61,20 @@ func (c *Crawler) CrawlJenkins(buildURI string, buildID string) {
 	go c.updateState(buildID)
 	go c.crawlBuild(uri)
 	c.processChannel <- buildID
+}
+
+func (c *Crawler) extractBuildLogs(jdata *ale.JenkinsData) []*ale.Log {
+	var jlogs []*ale.Log
+	for _, stage := range jdata.Stages {
+		if stage.SubStages != nil && len(stage.SubStages) > 0 {
+			for _, substage := range stage.SubStages {
+				jlogs = append(jlogs, substage.Logs...)
+			}
+		} else {
+			jlogs = append(jlogs, stage.Logs...)
+		}
+	}
+	return jlogs
 }
 
 func (c *Crawler) updateState(buildID string) {
@@ -78,10 +94,16 @@ func (c *Crawler) updateState(buildID string) {
 					c.processChannel <- buildID
 				}()
 			} else {
+				jlogs := c.extractBuildLogs(jdata)
+				c.log.Info("extracted jenkins build logs")
+				c.logChannel <- jlogs
+				c.log.Debug("build logs sent to logChannel")
+
 				c.log.WithFields(logrus.Fields{
 					"build_id": buildID,
 					"status":   jdata.Status,
 				}).Info("build finished")
+
 				return
 			}
 		}

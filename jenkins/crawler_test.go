@@ -76,6 +76,18 @@ func Test_SplitLogs(t *testing.T) {
 	assert.Equal(t, expected, actual)
 }
 
+func Test_ExtractBuildLogs(t *testing.T) {
+	var jdata *ale.JenkinsData
+	loadFixture(t, "crawled_build_data.json", &jdata)
+
+	var expected []*ale.Log
+	loadFixture(t, "extracted_build_logs.json", &expected)
+
+	actual := c.extractBuildLogs(jdata)
+
+	assert.Equal(t, expected, actual)
+}
+
 func loadFixture(t *testing.T, name string, v interface{}) {
 	path := filepath.Join("../test_fixtures", name)
 	bytes, err := ioutil.ReadFile(path)
