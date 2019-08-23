@@ -1,12 +1,18 @@
 package jenkins
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/url"
+	"path/filepath"
 	"testing"
 
 	"github.com/alde/ale"
 	"github.com/alde/ale/config"
 	"github.com/alde/ale/mock"
+	"github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -68,4 +74,17 @@ func Test_SplitLogs(t *testing.T) {
 	}
 	actual := c.splitLogs(input)
 	assert.Equal(t, expected, actual)
+}
+
+func loadFixture(t *testing.T, name string, v interface{}) {
+	path := filepath.Join("../test_fixtures", name)
+	bytes, err := ioutil.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = json.Unmarshal(bytes, v)
+	if err != nil {
+		t.Fatal(err)
+	}
 }
