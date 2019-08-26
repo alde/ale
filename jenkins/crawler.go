@@ -172,6 +172,9 @@ func (c *Crawler) crawlJobStage(buildURL *url.URL, link string) ale.JobExecution
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		c.log.Error(err)
+	}
 	var JobExecution ale.JobExecution
 	err = json.Unmarshal(body, &JobExecution)
 	if err != nil {
