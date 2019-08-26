@@ -95,9 +95,9 @@ func (c *Crawler) extractBuildLogs(jdata *ale.JenkinsData) []*ale.Log {
 			for _, substage := range stage.SubStages {
 				jlogs = append(jlogs, substage.Logs...)
 			}
-		} else {
-			jlogs = append(jlogs, stage.Logs...)
+			continue
 		}
+		jlogs = append(jlogs, stage.Logs...)
 	}
 	return jlogs
 }
@@ -118,19 +118,19 @@ func (c *Crawler) updateState(buildID string) {
 					time.Sleep(5 * time.Second)
 					c.processChannel <- buildID
 				}()
-			} else {
-				jlogs := c.extractBuildLogs(jdata)
-				c.log.Info("extracted jenkins build logs")
-				c.logChannel <- jlogs
-				c.log.Debug("build logs sent to logChannel")
-
-				c.log.WithFields(logrus.Fields{
-					"build_id": buildID,
-					"status":   jdata.Status,
-				}).Info("build finished")
-
-				return
+				continue
 			}
+
+			jlogs := c.extractBuildLogs(jdata)
+			c.log.Info("extracted jenkins build logs")
+			c.logChannel <- jlogs
+			c.log.Debug("build logs sent to logChannel")
+
+			c.log.WithFields(logrus.Fields{
+				"build_id": buildID,
+				"status":   jdata.Status,
+			}).Info("build finished")
+			return
 		}
 	}
 }
