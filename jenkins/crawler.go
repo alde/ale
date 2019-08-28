@@ -24,8 +24,10 @@ type Crawler struct {
 	config         *config.Config
 	processChannel chan string
 	stateChannel   chan *ale.JenkinsData
+	logChannel     chan []*ale.Log
 	httpClient     HTTPGetter
 	r              *regexp.Regexp
+	log            *logrus.Logger
 }
 
 // HTTPGetter is an interface only requiring Get from http.Client
@@ -44,8 +46,10 @@ func NewCrawler(db db.Database, conf *config.Config) *Crawler {
 		config:         conf,
 		processChannel: make(chan string, 1),
 		stateChannel:   make(chan *ale.JenkinsData, 1),
+		logChannel:     make(chan []*ale.Log, 1),
 		httpClient:     http.DefaultClient,
 		r:              r,
+		log:            logrus.New(),
 	}
 }
 
@@ -56,32 +60,77 @@ func (c *Crawler) CrawlJenkins(buildURI string, buildID string) {
 
 	go c.updateState(buildID)
 	go c.crawlBuild(uri)
+	go c.logBuildLogs(buildID, uri)
+
 	c.processChannel <- buildID
+}
+
+func (c *Crawler) logBuildLogs(buildID string, uri *url.URL) {
+	for {
+		select {
+		case jlogs := <-c.logChannel:
+			c.log.Debug("got request to log the jenkins build logs")
+			for _, jlog := range jlogs {
+				c.printBuildLog(jlog, uri, buildID)
+			}
+		}
+	}
+}
+
+func (c *Crawler) printBuildLog(jlog *ale.Log, uri *url.URL, buildID string) {
+	jsonData, err := json.Marshal(jlog)
+	if err != nil {
+		c.log.WithError(err).Error("unable to parse log entry")
+	}
+	c.log.WithFields(logrus.Fields{
+		"uri":      uri.String(),
+		"build_id": buildID,
+	}).Info(string(jsonData))
+}
+
+func (c *Crawler) extractBuildLogs(jdata *ale.JenkinsData) []*ale.Log {
+	var jlogs []*ale.Log
+	for _, stage := range jdata.Stages {
+		if stage.SubStages != nil && len(stage.SubStages) > 0 {
+			for _, substage := range stage.SubStages {
+				jlogs = append(jlogs, substage.Logs...)
+			}
+			continue
+		}
+		jlogs = append(jlogs, stage.Logs...)
+	}
+	return jlogs
 }
 
 func (c *Crawler) updateState(buildID string) {
 	for {
 		select {
 		case jdata := <-c.stateChannel:
-			logrus.Debug("got request to update the state")
+			c.log.Debug("got request to update the state")
 			if err := c.database.Put(jdata, buildID); err != nil {
-				logrus.WithField("build_id", buildID).WithError(err).Error("unable to add to database")
+				c.log.WithField("build_id", buildID).WithError(err).Error("unable to add to database")
 			}
-			logrus.WithField("build_id", buildID).Info("database updated")
+			c.log.WithField("build_id", buildID).Info("database updated")
 
 			if jdata.Status == "" || jdata.Status == "IN_PROGRESS" {
 				go func() {
-					logrus.Debug("sleeping for 5 seconds before requerying")
+					c.log.Debug("sleeping for 5 seconds before requerying")
 					time.Sleep(5 * time.Second)
 					c.processChannel <- buildID
 				}()
-			} else {
-				logrus.WithFields(logrus.Fields{
-					"build_id": buildID,
-					"status":   jdata.Status,
-				}).Info("build finished")
-				return
+				continue
 			}
+
+			jlogs := c.extractBuildLogs(jdata)
+			c.log.Info("extracted jenkins build logs")
+			c.logChannel <- jlogs
+			c.log.Debug("build logs sent to logChannel")
+
+			c.log.WithFields(logrus.Fields{
+				"build_id": buildID,
+				"status":   jdata.Status,
+			}).Info("build finished")
+			return
 		}
 	}
 }
@@ -93,19 +142,20 @@ func (c *Crawler) crawlBuild(uri *url.URL) {
 			jd := &ale.JobData{}
 			resp, err := c.httpClient.Get(uri.String())
 			if err != nil {
-				logrus.Error(err)
+				c.log.Error(err)
 			}
 			defer resp.Body.Close()
 			body, err := ioutil.ReadAll(resp.Body)
 			err = json.Unmarshal(body, &jd)
-			logrus.WithFields(logrus.Fields{
+			c.log.WithFields(logrus.Fields{
 				"uri":      uri.String(),
 				"build_id": buildID,
 			}).Info("crawling jenkins API")
+
 			jdata := c.extractLogs(jd, buildID, uri)
-			logrus.Info("extracted jenkins data")
+			c.log.Info("extracted jenkins data")
 			c.stateChannel <- jdata
-			logrus.Debug("data sent to stateChannel")
+			c.log.Debug("data sent to stateChannel")
 		}
 	}
 }
@@ -118,14 +168,17 @@ func (c *Crawler) crawlJobStage(buildURL *url.URL, link string) ale.JobExecution
 	}
 	resp, err := c.httpClient.Get(stageLink.String())
 	if err != nil {
-		logrus.Error(err)
+		c.log.Error(err)
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		c.log.Error(err)
+	}
 	var JobExecution ale.JobExecution
 	err = json.Unmarshal(body, &JobExecution)
 	if err != nil {
-		logrus.Error(err)
+		c.log.Error(err)
 	}
 	return JobExecution
 }
@@ -184,14 +237,14 @@ func (c *Crawler) findTask(node *ale.StageFlowNode, flowNodesByID map[string]*al
 func (c *Crawler) extractNodeLogs(logLink *url.URL) *ale.NodeLog {
 	resp, err := http.Get(logLink.String())
 	if err != nil {
-		logrus.Error(err)
+		c.log.Error(err)
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	var nodeLog ale.NodeLog
 	err = json.Unmarshal(body, &nodeLog)
 	if err != nil {
-		logrus.WithError(err).WithField("url", logLink.String()).Error("unable to extract logs from node")
+		c.log.WithError(err).WithField("url", logLink.String()).Error("unable to extract logs from node")
 	}
 	return &nodeLog
 }
@@ -213,7 +266,7 @@ func (c *Crawler) crawlStageFlowNodesLogs(execution *ale.JobExecution, buildURL 
 			Host:   buildURL.Host,
 			Path:   node.Links.Log.Href,
 		}
-		logrus.WithFields(logrus.Fields{
+		c.log.WithFields(logrus.Fields{
 			"url":  logLink,
 			"node": node.ID,
 		}).Debug("crawling jenkins")
@@ -229,7 +282,7 @@ func (c *Crawler) crawlStageFlowNodesLogs(execution *ale.JobExecution, buildURL 
 }
 
 func (c *Crawler) extractLogsFromExecution(execution *ale.JobExecution, buildURL *url.URL) *ale.JenkinsStage {
-	logrus.WithField("id", execution.ID).Debug("crowling execution")
+	c.log.WithField("id", execution.ID).Debug("crawling execution")
 	if execution.StageFlowNodes != nil && len(execution.StageFlowNodes) > 0 {
 		return c.crawlStageFlowNodesLogs(execution, buildURL)
 	}
