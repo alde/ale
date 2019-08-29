@@ -89,7 +89,7 @@ func Test_ExtractBuildLogs(t *testing.T) {
 }
 
 func Test_PrintBuildLog(t *testing.T) {
-	hook := test.NewLocal(c.log)
+	hook := test.NewGlobal()
 
 	var jlogs []*ale.Log
 	loadFixture(t, "extracted_build_logs.json", &jlogs)

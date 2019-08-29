@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/sirupsen/logrus"
 	"github.com/alde/ale/config"
+	"github.com/sirupsen/logrus"
 )
 
 const (
