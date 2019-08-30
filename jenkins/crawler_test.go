@@ -104,9 +104,7 @@ func Test_PrintBuildLog(t *testing.T) {
 	assert.Equal(t, logrus.InfoLevel, hook.LastEntry().Level)
 	for idx, entry := range hook.AllEntries() {
 		expected := jlogs[idx]
-		var actual *ale.Log
-		_ = json.Unmarshal([]byte(entry.Message), &actual)
-		assert.Equal(t, expected, actual)
+		assert.Equal(t, expected.Line, entry.Message)
 	}
 	hook.Reset()
 	assert.Nil(t, hook.LastEntry())
