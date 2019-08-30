@@ -27,7 +27,6 @@ type Crawler struct {
 	logChannel     chan []*ale.Log
 	httpClient     HTTPGetter
 	r              *regexp.Regexp
-	log            *logrus.Logger
 }
 
 // HTTPGetter is an interface only requiring Get from http.Client
@@ -49,7 +48,6 @@ func NewCrawler(db db.Database, conf *config.Config) *Crawler {
 		logChannel:     make(chan []*ale.Log, 1),
 		httpClient:     http.DefaultClient,
 		r:              r,
-		log:            logrus.New(),
 	}
 }
 
