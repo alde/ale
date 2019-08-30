@@ -78,14 +78,11 @@ func (c *Crawler) logBuildLogs(buildID string, uri *url.URL) {
 }
 
 func (c *Crawler) printBuildLog(jlog *ale.Log, uri *url.URL, buildID string) {
-	jsonData, err := json.Marshal(jlog)
-	if err != nil {
-		logrus.WithError(err).Error("unable to parse log entry")
-	}
 	logrus.WithFields(logrus.Fields{
-		"uri":      uri.String(),
-		"build_id": buildID,
-	}).Info(string(jsonData))
+		"uri":             uri.String(),
+		"build_id":        buildID,
+		"build_timestamp": jlog.TimeStamp,
+	}).Info(jlog.Line)
 }
 
 func (c *Crawler) extractBuildLogs(jdata *ale.JenkinsData) []*ale.Log {
