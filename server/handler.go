@@ -76,10 +76,6 @@ func (h *Handler) ProcessBuild() http.HandlerFunc {
 			handleError(err, w, "build_url is required")
 			return
 		}
-		if resp0, err := http.Head(request.BuildURL); err != nil || resp0.StatusCode != http.StatusOK {
-			writeJSON(http.StatusBadRequest, "error checking build_url", w)
-			return
-		}
 		if request.BuildID == "" {
 			request.BuildID = uuid.New().String()
 		}
@@ -87,6 +83,12 @@ func (h *Handler) ProcessBuild() http.HandlerFunc {
 		exists, err := h.database.Has(request.BuildID)
 		if err != nil {
 			logrus.WithError(err).Warn("unable to check for existance of database entry")
+		}
+		if !exists {
+			if resp0, err := http.Head(request.BuildURL); err != nil || resp0.StatusCode != http.StatusOK {
+				writeJSON(http.StatusBadRequest, "error checking build_url", w)
+				return
+			}
 		}
 
 		url := absURL(r, fmt.Sprintf("/api/v1/build/%s", request.BuildID), h.config)
