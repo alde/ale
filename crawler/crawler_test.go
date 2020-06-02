@@ -1,4 +1,4 @@
-package jenkins
+package crawler
 
 import (
 	"encoding/json"
@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	c = NewCrawler(&mock.DB{}, config.DefaultConfig())
+	c = NewJenkinsCrawler(&mock.DB{}, config.DefaultConfig())
 )
 
 func Test_ExtractTimestamp(t *testing.T) {

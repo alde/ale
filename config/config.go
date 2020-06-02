@@ -59,8 +59,8 @@ func Initialize(configFile string) *Config {
 func DefaultConfig() *Config {
 	cfg := &Config{}
 
-	cfg.Server.Address = "0.0.0.0"
-	cfg.Server.Port = 7654
+	cfg.Server.Address = "127.0.0.1"
+	cfg.Server.Port = 8080
 
 	cfg.Logging.Format = "text"
 	cfg.Logging.Level = "DEBUG"
@@ -68,8 +68,8 @@ func DefaultConfig() *Config {
 	cfg.Metadata = make(map[string]string)
 	cfg.Metadata["owner"] = os.Getenv("USER")
 
-	cfg.Crawler.LogPattern = `.*\[([\d{4}\-\d{2}\-\d{2}T\d{2}:\d{2}:\d{2}.\d*Z]*)\].*?\s(.*)$`
-
+	// TODO: this only matches teamcity buildlogs now, make it support multiple patterns for different CITools
+	cfg.Crawler.LogPattern = `\[(\d{2}:\d{2}:\d{2})\]..*?\s(.*)$`
 	return cfg
 }
 

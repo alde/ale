@@ -46,12 +46,24 @@ func routes(h *Handler) []route {
 			Name:    "PostBuild",
 			Method:  "POST",
 			Pattern: "/api/v1/process",
-			Handler: h.ProcessBuild(),
+			Handler: h.ProcessBuild(""),
+		},
+		{
+			Name:    "PostTeamcityBuild",
+			Method:  "POST",
+			Pattern: "/api/v1/teamcity/process",
+			Handler: h.ProcessBuild("teamcity"),
 		},
 		{
 			Name:    "GetBuild",
 			Method:  "GET",
 			Pattern: "/api/v1/build/{id}",
+			Handler: h.GetJenkinsBuild(),
+		},
+		{
+			Name:    "GetTeamcityBuild",
+			Method:  "GET",
+			Pattern: "/api/v1/teamcity/build/{id}",
 			Handler: h.GetJenkinsBuild(),
 		},
 		{

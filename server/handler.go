@@ -11,7 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/alde/ale/config"
-	"github.com/alde/ale/jenkins"
+	"github.com/alde/ale/crawler"
 	"github.com/alde/ale/version"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
@@ -19,14 +19,16 @@ import (
 
 // Handler holds the server context
 type Handler struct {
-	config         *config.Config
-	database       db.Database
-	crawlerCreator func(db.Database, *config.Config) *jenkins.Crawler
+	config           *config.Config
+	database         db.Database
+	jCrawlerCreator  func(db.Database, *config.Config) *crawler.JenkinsCrawler
+	tcCrawlerCreator func(db.Database, *config.Config) *crawler.TeamCityCrawler
 }
 
 // NewHandler createss a new HTTP handler
 func NewHandler(cfg *config.Config, db db.Database) *Handler {
-	return &Handler{config: cfg, database: db, crawlerCreator: jenkins.NewCrawler}
+	return &Handler{config: cfg, database: db, jCrawlerCreator: crawler.NewJenkinsCrawler,
+		tcCrawlerCreator: crawler.NewTeamCityCrawler}
 }
 
 // ServiceMetadata displays hopefully useful information about the service
@@ -54,7 +56,7 @@ type ProcessResponse struct {
 }
 
 // ProcessBuild Triggers of a job to process a given build
-func (h *Handler) ProcessBuild() http.HandlerFunc {
+func (h *Handler) ProcessBuild(CITool string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
@@ -84,12 +86,12 @@ func (h *Handler) ProcessBuild() http.HandlerFunc {
 		if err != nil {
 			logrus.WithError(err).Warn("unable to check for existance of database entry")
 		}
-		if !exists {
-			if resp0, err := http.Head(request.BuildURL); err != nil || resp0.StatusCode != http.StatusOK {
-				writeJSON(http.StatusBadRequest, "error checking build_url", w)
-				return
-			}
-		}
+		// if !exists {
+		// 	if resp0, err := http.Head(request.BuildURL); err != nil || resp0.StatusCode != http.StatusOK {
+		// 		writeJSON(http.StatusBadRequest, "error checking build_url", w)
+		// 		return
+		// 	}
+		// }
 
 		url := absURL(r, fmt.Sprintf("/api/v1/build/%s", request.BuildID), h.config)
 		response := &ProcessResponse{
@@ -104,8 +106,14 @@ func (h *Handler) ProcessBuild() http.HandlerFunc {
 		}
 
 		go func() {
-			crawler := h.crawlerCreator(h.database, h.config)
-			crawler.CrawlJenkins(request.BuildURL, request.BuildID)
+			// Default to jenkins
+			if CITool == "teamcity" {
+				crawler := h.tcCrawlerCreator(h.database, h.config)
+				crawler.InitiateCrawl(request.BuildURL, request.BuildID)
+			} else {
+				crawler := h.jCrawlerCreator(h.database, h.config)
+				crawler.InitiateCrawl(request.BuildURL, request.BuildID)
+			}
 		}()
 		writeJSON(http.StatusCreated, response, w)
 		return

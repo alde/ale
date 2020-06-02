@@ -1,4 +1,4 @@
-package jenkins
+package crawler
 
 import (
 	"encoding/json"
@@ -19,7 +19,7 @@ import (
 )
 
 // Crawler struct holds various attributes needed by the crawler
-type Crawler struct {
+type JenkinsCrawler struct {
 	database       db.Database
 	config         *config.Config
 	processChannel chan string
@@ -30,18 +30,13 @@ type Crawler struct {
 	log            *logrus.Logger
 }
 
-// HTTPGetter is an interface only requiring Get from http.Client
-type HTTPGetter interface {
-	Get(uri string) (*http.Response, error)
-}
-
-// NewCrawler instatiates a new crawler
-func NewCrawler(db db.Database, conf *config.Config) *Crawler {
+// NewJenkinsCrawler instatiates a new crawler
+func NewJenkinsCrawler(db db.Database, conf *config.Config) *JenkinsCrawler {
 	r, err := regexp.Compile(conf.Crawler.LogPattern)
 	if err != nil {
 		logrus.WithError(err).Fatal("unable to create log matcher")
 	}
-	return &Crawler{
+	return &JenkinsCrawler{
 		database:       db,
 		config:         conf,
 		processChannel: make(chan string, 1),
@@ -53,8 +48,8 @@ func NewCrawler(db db.Database, conf *config.Config) *Crawler {
 	}
 }
 
-// CrawlJenkins initiates the crawler
-func (c *Crawler) CrawlJenkins(buildURI string, buildID string) {
+// InitiateCrawl initiates the crawler
+func (c *JenkinsCrawler) InitiateCrawl(buildURI string, buildID string) {
 	uri0 := strings.Join([]string{strings.TrimRight(buildURI, "/"), "wfapi", "describe"}, "/")
 	uri, _ := url.Parse(uri0)
 
@@ -65,7 +60,7 @@ func (c *Crawler) CrawlJenkins(buildURI string, buildID string) {
 	c.processChannel <- buildID
 }
 
-func (c *Crawler) logBuildLogs(buildID string, uri *url.URL) {
+func (c *JenkinsCrawler) logBuildLogs(buildID string, uri *url.URL) {
 	for {
 		select {
 		case jlogs := <-c.logChannel:
@@ -77,7 +72,7 @@ func (c *Crawler) logBuildLogs(buildID string, uri *url.URL) {
 	}
 }
 
-func (c *Crawler) printBuildLog(jlog *ale.Log, uri *url.URL, buildID string) {
+func (c *JenkinsCrawler) printBuildLog(jlog *ale.Log, uri *url.URL, buildID string) {
 	logrus.WithFields(logrus.Fields{
 		"uri":             uri.String(),
 		"build_id":        buildID,
@@ -85,7 +80,7 @@ func (c *Crawler) printBuildLog(jlog *ale.Log, uri *url.URL, buildID string) {
 	}).Info(jlog.Line)
 }
 
-func (c *Crawler) extractBuildLogs(jdata *ale.JenkinsData) []*ale.Log {
+func (c *JenkinsCrawler) extractBuildLogs(jdata *ale.JenkinsData) []*ale.Log {
 	var jlogs []*ale.Log
 	for _, stage := range jdata.Stages {
 		if stage.SubStages != nil && len(stage.SubStages) > 0 {
@@ -99,7 +94,7 @@ func (c *Crawler) extractBuildLogs(jdata *ale.JenkinsData) []*ale.Log {
 	return jlogs
 }
 
-func (c *Crawler) updateState(buildID string) {
+func (c *JenkinsCrawler) updateState(buildID string) {
 	for {
 		select {
 		case jdata := <-c.stateChannel:
@@ -132,7 +127,7 @@ func (c *Crawler) updateState(buildID string) {
 	}
 }
 
-func (c *Crawler) crawlBuild(uri *url.URL) {
+func (c *JenkinsCrawler) crawlBuild(uri *url.URL) {
 	for {
 		select {
 		case buildID := <-c.processChannel:
@@ -157,7 +152,7 @@ func (c *Crawler) crawlBuild(uri *url.URL) {
 	}
 }
 
-func (c *Crawler) crawlJobStage(buildURL *url.URL, link string) ale.JobExecution {
+func (c *JenkinsCrawler) crawlJobStage(buildURL *url.URL, link string) ale.JobExecution {
 	stageLink := &url.URL{
 		Scheme: buildURL.Scheme,
 		Host:   buildURL.Host,
@@ -180,7 +175,7 @@ func (c *Crawler) crawlJobStage(buildURL *url.URL, link string) ale.JobExecution
 	return JobExecution
 }
 
-func (c *Crawler) crawlExecutionLogs(execution *ale.JobExecution, buildURL *url.URL) *ale.JenkinsStage {
+func (c *JenkinsCrawler) crawlExecutionLogs(execution *ale.JobExecution, buildURL *url.URL) *ale.JenkinsStage {
 	logLink := &url.URL{
 		Scheme: buildURL.Scheme,
 		Host:   buildURL.Host,
@@ -197,7 +192,7 @@ func (c *Crawler) crawlExecutionLogs(execution *ale.JobExecution, buildURL *url.
 	}
 }
 
-func (c *Crawler) extractLogsFromFlowNode(node *ale.StageFlowNode, buildURL *url.URL, ename string, flowNodesByID map[string]*ale.StageFlowNode) *ale.JenkinsStage {
+func (c *JenkinsCrawler) extractLogsFromFlowNode(node *ale.StageFlowNode, buildURL *url.URL, ename string, flowNodesByID map[string]*ale.StageFlowNode) *ale.JenkinsStage {
 	logLink := &url.URL{
 		Scheme: buildURL.Scheme,
 		Host:   buildURL.Host,
@@ -217,7 +212,7 @@ func (c *Crawler) extractLogsFromFlowNode(node *ale.StageFlowNode, buildURL *url
 	}
 }
 
-func (c *Crawler) findTask(node *ale.StageFlowNode, flowNodesByID map[string]*ale.StageFlowNode) string {
+func (c *JenkinsCrawler) findTask(node *ale.StageFlowNode, flowNodesByID map[string]*ale.StageFlowNode) string {
 	if strings.Contains(node.ParameterDescription, "from task") {
 		return strings.TrimSpace(strings.Split(node.ParameterDescription, "from task")[1])
 	}
@@ -231,7 +226,7 @@ func (c *Crawler) findTask(node *ale.StageFlowNode, flowNodesByID map[string]*al
 	return c.findTask(firstParent, flowNodesByID)
 }
 
-func (c *Crawler) extractNodeLogs(logLink *url.URL) *ale.NodeLog {
+func (c *JenkinsCrawler) extractNodeLogs(logLink *url.URL) *ale.NodeLog {
 	resp, err := http.Get(logLink.String())
 	if err != nil {
 		logrus.Error(err)
@@ -246,7 +241,7 @@ func (c *Crawler) extractNodeLogs(logLink *url.URL) *ale.NodeLog {
 	return &nodeLog
 }
 
-func (c *Crawler) crawlStageFlowNodesLogs(execution *ale.JobExecution, buildURL *url.URL) *ale.JenkinsStage {
+func (c *JenkinsCrawler) crawlStageFlowNodesLogs(execution *ale.JobExecution, buildURL *url.URL) *ale.JenkinsStage {
 	logs := []*ale.JenkinsStage{}
 	var flowNodesByID = make(map[string]*ale.StageFlowNode)
 	for i := range execution.StageFlowNodes {
@@ -278,7 +273,7 @@ func (c *Crawler) crawlStageFlowNodesLogs(execution *ale.JobExecution, buildURL 
 	}
 }
 
-func (c *Crawler) extractLogsFromExecution(execution *ale.JobExecution, buildURL *url.URL) *ale.JenkinsStage {
+func (c *JenkinsCrawler) extractLogsFromExecution(execution *ale.JobExecution, buildURL *url.URL) *ale.JenkinsStage {
 	logrus.WithField("id", execution.ID).Debug("crawling execution")
 	if execution.StageFlowNodes != nil && len(execution.StageFlowNodes) > 0 {
 		return c.crawlStageFlowNodesLogs(execution, buildURL)
@@ -286,7 +281,7 @@ func (c *Crawler) extractLogsFromExecution(execution *ale.JobExecution, buildURL
 	return c.crawlExecutionLogs(execution, buildURL)
 }
 
-func (c *Crawler) extractLogs(jd *ale.JobData, buildID string, buildURL *url.URL) *ale.JenkinsData {
+func (c *JenkinsCrawler) extractLogs(jd *ale.JobData, buildID string, buildURL *url.URL) *ale.JenkinsData {
 	var stages []*ale.JenkinsStage
 	for _, stage := range jd.Stages {
 		execution := c.crawlJobStage(buildURL, stage.Links.Self.Href)
@@ -311,7 +306,7 @@ func (c *Crawler) extractLogs(jd *ale.JobData, buildID string, buildURL *url.URL
 	}
 }
 
-func (c *Crawler) splitLogs(log string) []*ale.Log {
+func (c *JenkinsCrawler) splitLogs(log string) []*ale.Log {
 	var l []*ale.Log
 	for _, part := range strings.Split(log, "\n") {
 		if part == "" {
@@ -322,7 +317,7 @@ func (c *Crawler) splitLogs(log string) []*ale.Log {
 	return l
 }
 
-func (c *Crawler) extractTimestamp(line string) *ale.Log {
+func (c *JenkinsCrawler) extractTimestamp(line string) *ale.Log {
 	re := c.r.FindStringSubmatch(line)
 	if len(re) <= 1 {
 		return &ale.Log{

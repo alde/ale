@@ -98,6 +98,16 @@ type JenkinsStage struct {
 	Description string          `json:"description"`
 }
 
+type TeamCityData struct {
+	BuildID     string `json:"id"`
+	BuildTypeID string `json:"buildTypeId"`
+	Number      int    `json:"number"`
+	Status      string `json:"status"`
+	StartDate   int    `json:"startDate"`
+	FinishDate  int    `json:"finishDate"`
+	Logs        []*Log `json:"log"`
+}
+
 // The Log struct maps to the response value for the structured log
 type Log struct {
 	TimeStamp string `json:"timestamp"`
