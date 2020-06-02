@@ -86,14 +86,16 @@ func (h *Handler) ProcessBuild(CITool string) http.HandlerFunc {
 		if err != nil {
 			logrus.WithError(err).Warn("unable to check for existance of database entry")
 		}
-		// if !exists {
-		// 	if resp0, err := http.Head(request.BuildURL); err != nil || resp0.StatusCode != http.StatusOK {
-		// 		writeJSON(http.StatusBadRequest, "error checking build_url", w)
-		// 		return
-		// 	}
-		// }
-
+		if !exists {
+			if resp0, err := http.Head(request.BuildURL); err != nil || resp0.StatusCode != http.StatusOK {
+				writeJSON(http.StatusBadRequest, "error checking build_url", w)
+				return
+			}
+		}
 		url := absURL(r, fmt.Sprintf("/api/v1/build/%s", request.BuildID), h.config)
+		if CITool == "teamcity" {
+			url = absURL(r, fmt.Sprintf("/api/v1/teamcity/build/%s", request.BuildID), h.config)
+		}
 		response := &ProcessResponse{
 			Location: url,
 		}
@@ -107,13 +109,14 @@ func (h *Handler) ProcessBuild(CITool string) http.HandlerFunc {
 
 		go func() {
 			// Default to jenkins
+			var crawler crawler.Crawler
 			if CITool == "teamcity" {
-				crawler := h.tcCrawlerCreator(h.database, h.config)
-				crawler.InitiateCrawl(request.BuildURL, request.BuildID)
+				crawler = h.tcCrawlerCreator(h.database, h.config)
 			} else {
-				crawler := h.jCrawlerCreator(h.database, h.config)
-				crawler.InitiateCrawl(request.BuildURL, request.BuildID)
+				crawler = h.jCrawlerCreator(h.database, h.config)
 			}
+			crawler.InitiateCrawl(request.BuildURL, request.BuildID)
+
 		}()
 		writeJSON(http.StatusCreated, response, w)
 		return

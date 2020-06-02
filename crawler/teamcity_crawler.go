@@ -22,10 +22,10 @@ type TeamCityCrawler struct {
 	processChannel chan string
 	stateChannel   chan *ale.TeamCityData
 	logChannel     chan []*ale.Log
-	httpClient     HTTPGetter
+	httpClient     HTTP
 	r              *regexp.Regexp
 	log            *logrus.Logger
-	token 		   string
+	token          string
 }
 
 // NewCrawler instantiates a new crawler
@@ -43,7 +43,7 @@ func NewTeamCityCrawler(db db.Database, conf *config.Config) *TeamCityCrawler {
 		httpClient:     http.DefaultClient,
 		r:              r,
 		log:            logrus.New(),
-		token: 			conf.Token.TCAccessToken,
+		token:          conf.Token.TCAccessToken,
 	}
 }
 
@@ -78,7 +78,6 @@ func (c *TeamCityCrawler) printBuildLog(tclog *ale.Log, buildID string) {
 }
 
 func (c *TeamCityCrawler) updateState(buildID string) {
-	// put builddata from statechannel to db. Notify logchannel to log the buildlogs for this build
 	for {
 		select {
 		case tcdata := <-c.stateChannel:
@@ -101,13 +100,13 @@ func (c *TeamCityCrawler) updateState(buildID string) {
 }
 
 func (c *TeamCityCrawler) crawlBuild(uri *url.URL) {
-	// check for build log size before downloading it, like the archiver
-	//get buildLog metadata
+	// TODO: check for build log size before downloading it, can be very big
+	// Get buildLog metadata
 	buildID := <-c.processChannel
 	buildInfoUri := fmt.Sprintf("https://teamcity.local:8080/app/rest/builds/id:%s?fields=id,buildTypeId,number,status,startDate,finishDate", buildID)
 	tcd := &ale.TeamCityData{}
 	infoRequest, err := http.NewRequest("GET", buildInfoUri, nil)
-	infoRequest.Header.Set("Authorization", "Bearer " + c.token)
+	infoRequest.Header.Set("Authorization", "Bearer "+c.token)
 	infoResp, err := c.httpClient.Do(infoRequest)
 	if err != nil {
 		logrus.Error(err)
@@ -116,9 +115,9 @@ func (c *TeamCityCrawler) crawlBuild(uri *url.URL) {
 	infoBody, err := ioutil.ReadAll(infoResp.Body)
 	err = json.Unmarshal(infoBody, &tcd)
 
-	//get buildLog
+	// Get buildLog
 	request, err := http.NewRequest("GET", uri.String(), nil)
-	request.Header.Set("Authorization", "Bearer " + c.token)
+	request.Header.Set("Authorization", "Bearer "+c.token)
 	resp, err := c.httpClient.Do(request)
 	if err != nil {
 		logrus.Error(err)
@@ -127,7 +126,7 @@ func (c *TeamCityCrawler) crawlBuild(uri *url.URL) {
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 
-	//Extract teamcity log data
+	// Extract teamcity log data
 	tcdata := c.extractBuildLogs(tcd, string(body), buildID)
 	c.stateChannel <- tcdata
 	logrus.Debug("teamcity data sent to stateChannel")

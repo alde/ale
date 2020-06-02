@@ -64,6 +64,7 @@ func routes(h *Handler) []route {
 			Name:    "GetTeamcityBuild",
 			Method:  "GET",
 			Pattern: "/api/v1/teamcity/build/{id}",
+			// TODO h.GetTeamcityBuild()
 			Handler: h.GetJenkinsBuild(),
 		},
 		{

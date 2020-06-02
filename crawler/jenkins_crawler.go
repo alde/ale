@@ -25,7 +25,7 @@ type JenkinsCrawler struct {
 	processChannel chan string
 	stateChannel   chan *ale.JenkinsData
 	logChannel     chan []*ale.Log
-	httpClient     HTTPGetter
+	httpClient     HTTP
 	r              *regexp.Regexp
 	log            *logrus.Logger
 }

@@ -12,8 +12,8 @@ type Crawler interface {
 	crawlBuild(uri *url.URL)
 }
 
-// HTTPGetter is an interface only requiring Get from http.Client
-type HTTPGetter interface {
+// HTTP is an interface only requiring Get and Do from http.Client
+type HTTP interface {
 	Get(uri string) (*http.Response, error)
 	Do(request *http.Request) (*http.Response, error)
 }

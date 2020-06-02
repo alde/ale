@@ -98,6 +98,7 @@ type JenkinsStage struct {
 	Description string          `json:"description"`
 }
 
+// TeamCityData is the topmost level of teamcity build logs stored in database
 type TeamCityData struct {
 	BuildID     string `json:"id"`
 	BuildTypeID string `json:"buildTypeId"`
