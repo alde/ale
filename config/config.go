@@ -43,7 +43,12 @@ type Config struct {
 	PostgreSQL           SQLConf
 
 	Crawler struct {
-		LogPattern string
+		JenkinsLogPattern string
+		TeamcityLogPattern string
+	}
+
+	Token struct {
+		TCAccessToken string
 	}
 }
 
@@ -59,8 +64,8 @@ func Initialize(configFile string) *Config {
 func DefaultConfig() *Config {
 	cfg := &Config{}
 
-	cfg.Server.Address = "127.0.0.1"
-	cfg.Server.Port = 8080
+	cfg.Server.Address = "0.0.0.0"
+	cfg.Server.Port = 7654
 
 	cfg.Logging.Format = "text"
 	cfg.Logging.Level = "DEBUG"
@@ -68,8 +73,10 @@ func DefaultConfig() *Config {
 	cfg.Metadata = make(map[string]string)
 	cfg.Metadata["owner"] = os.Getenv("USER")
 
-	// TODO: this only matches teamcity buildlogs now, make it support multiple patterns for different CITools
-	cfg.Crawler.LogPattern = `\[(\d{2}:\d{2}:\d{2})\]..*?\s(.*)$`
+	cfg.Crawler.JenkinsLogPattern = `.*\[([\d{4}\-\d{2}\-\d{2}T\d{2}:\d{2}:\d{2}.\d*Z]*)\].*?\s(.*)$`
+	cfg.Crawler.TeamcityLogPattern = `\[(\d{2}:\d{2}:\d{2})\]..*?\s(.*)$`
+
+	cfg.Token.TCAccessToken = "teamcity-token"
 	return cfg
 }
 

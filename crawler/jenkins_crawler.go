@@ -32,7 +32,7 @@ type JenkinsCrawler struct {
 
 // NewJenkinsCrawler instatiates a new crawler
 func NewJenkinsCrawler(db db.Database, conf *config.Config) *JenkinsCrawler {
-	r, err := regexp.Compile(conf.Crawler.LogPattern)
+	r, err := regexp.Compile(conf.Crawler.JenkinsLogPattern)
 	if err != nil {
 		logrus.WithError(err).Fatal("unable to create log matcher")
 	}

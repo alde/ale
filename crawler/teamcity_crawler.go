@@ -25,12 +25,12 @@ type TeamCityCrawler struct {
 	httpClient     HTTPGetter
 	r              *regexp.Regexp
 	log            *logrus.Logger
+	token 		   string
 }
 
-//TODO: won't be invoked by a TeamCityCrawler. Handle dublicate definitions in this package then
 // NewCrawler instantiates a new crawler
 func NewTeamCityCrawler(db db.Database, conf *config.Config) *TeamCityCrawler {
-	r, err := regexp.Compile(conf.Crawler.LogPattern)
+	r, err := regexp.Compile(conf.Crawler.TeamcityLogPattern)
 	if err != nil {
 		logrus.WithError(err).Fatal("unable to create log matcher")
 	}
@@ -43,6 +43,7 @@ func NewTeamCityCrawler(db db.Database, conf *config.Config) *TeamCityCrawler {
 		httpClient:     http.DefaultClient,
 		r:              r,
 		log:            logrus.New(),
+		token: 			conf.Token.TCAccessToken,
 	}
 }
 
@@ -101,16 +102,12 @@ func (c *TeamCityCrawler) updateState(buildID string) {
 
 func (c *TeamCityCrawler) crawlBuild(uri *url.URL) {
 	// check for build log size before downloading it, like the archiver
-	// use the link from gabriel to query logs, use same link as
-	// fregador to query for build log size
-
 	//get buildLog metadata
 	buildID := <-c.processChannel
 	buildInfoUri := fmt.Sprintf("https://teamcity.local:8080/app/rest/builds/id:%s?fields=id,buildTypeId,number,status,startDate,finishDate", buildID)
 	tcd := &ale.TeamCityData{}
-	token := "<teamcity-token>"
 	infoRequest, err := http.NewRequest("GET", buildInfoUri, nil)
-	infoRequest.Header.Set("Authorization", "Bearer "+token)
+	infoRequest.Header.Set("Authorization", "Bearer " + c.token)
 	infoResp, err := c.httpClient.Do(infoRequest)
 	if err != nil {
 		logrus.Error(err)
@@ -121,7 +118,7 @@ func (c *TeamCityCrawler) crawlBuild(uri *url.URL) {
 
 	//get buildLog
 	request, err := http.NewRequest("GET", uri.String(), nil)
-	request.Header.Set("Authorization", "Bearer "+token)
+	request.Header.Set("Authorization", "Bearer " + c.token)
 	resp, err := c.httpClient.Do(request)
 	if err != nil {
 		logrus.Error(err)
