@@ -104,6 +104,7 @@ type TeamCityData struct {
 	BuildTypeID string `json:"buildTypeId"`
 	Number      int    `json:"number"`
 	Status      string `json:"status"`
+	State 		string `json:"state"`
 	StartDate   int    `json:"startDate"`
 	FinishDate  int    `json:"finishDate"`
 	Logs        []*Log `json:"log"`

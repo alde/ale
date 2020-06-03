@@ -86,7 +86,7 @@ func (h *Handler) ProcessBuild(CITool string) http.HandlerFunc {
 		if err != nil {
 			logrus.WithError(err).Warn("unable to check for existance of database entry")
 		}
-		if !exists {
+		if !exists && CITool != "teamcity" {
 			if resp0, err := http.Head(request.BuildURL); err != nil || resp0.StatusCode != http.StatusOK {
 				writeJSON(http.StatusBadRequest, "error checking build_url", w)
 				return

@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/alde/ale"
 	"github.com/alde/ale/config"
@@ -88,6 +89,11 @@ func (c *TeamCityCrawler) updateState(buildID string) {
 				}
 				logrus.WithField("build_id", buildID).Info("database updated")
 			*/
+			if tcdata.State != "finished" {
+				time.Sleep(5 * time.Second)
+				c.processChannel <- buildID
+			}
+
 			c.logChannel <- tcdata.Logs
 			logrus.Debug("build logs sent to tc.logChannel")
 			logrus.WithFields(logrus.Fields{
@@ -103,7 +109,7 @@ func (c *TeamCityCrawler) crawlBuild(uri *url.URL) {
 	// TODO: check for build log size before downloading it, can be very big
 	// Get buildLog metadata
 	buildID := <-c.processChannel
-	buildInfoUri := fmt.Sprintf("https://teamcity.local:8080/app/rest/builds/id:%s?fields=id,buildTypeId,number,status,startDate,finishDate", buildID)
+	buildInfoUri := fmt.Sprintf("https://teamcity.local:8080/app/rest/builds/id:%s?fields=id,buildTypeId,number,status,state,startDate,finishDate", buildID)
 	tcd := &ale.TeamCityData{}
 	infoRequest, err := http.NewRequest("GET", buildInfoUri, nil)
 	infoRequest.Header.Set("Authorization", "Bearer "+c.token)
@@ -136,6 +142,7 @@ func (c *TeamCityCrawler) crawlBuild(uri *url.URL) {
 func (c *TeamCityCrawler) extractBuildLogs(tcd *ale.TeamCityData, buildLog string, buildID string) *ale.TeamCityData {
 	return &ale.TeamCityData{
 		Status:      tcd.Status,
+		State:       tcd.State,
 		BuildID:     buildID,
 		BuildTypeID: tcd.BuildTypeID,
 		Number:      tcd.Number,
