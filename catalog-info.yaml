@@ -7,6 +7,6 @@ metadata:
     code-coverage: enabled
     backstage.io/source-location: https://github.com/alde/ale
 spec:
-  type: other
-  lifecycle: unknown
+  type: service
+  lifecycle: experimental
   owner: infrastructure
