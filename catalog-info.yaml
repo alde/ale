@@ -1,0 +1,10 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ale
+  annotations:
+    github.com/project-slug: alde/ale
+spec:
+  type: other
+  lifecycle: unknown
+  owner: infrastructure
