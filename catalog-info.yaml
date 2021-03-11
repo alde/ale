@@ -4,7 +4,7 @@ metadata:
   name: ale
   annotations:
     github.com/project-slug: alde/ale
-    code-coverage: enabled
+    bsckstage.io/code-coverage: scm-only
     backstage.io/source-location: https://github.com/alde/ale
 spec:
   type: service
