@@ -5,7 +5,7 @@ metadata:
   annotations:
     github.com/project-slug: alde/ale
     backstage.io/code-coverage: scm-only
-    backstage.io/source-location: https://github.com/alde/ale
+    backstage.io/source-location: url:https://github.com/alde/ale
 spec:
   type: service
   lifecycle: experimental
