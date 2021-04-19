@@ -1,20 +1,22 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
 
-	"github.com/alde/ale/db"
+	"cloud.google.com/go/pubsub"
+	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 
 	"github.com/alde/ale/config"
+	"github.com/alde/ale/db"
 	"github.com/alde/ale/jenkins"
 	"github.com/alde/ale/version"
-	"github.com/google/uuid"
-	"github.com/gorilla/mux"
 )
 
 // Handler holds the server context
@@ -144,5 +146,40 @@ func (h *Handler) ProcessOptions() http.HandlerFunc {
 		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 		writeJSON(http.StatusOK, struct{}{}, w)
+	}
+}
+
+func (h *Handler) SetupPubsub(cfg *config.Config) {
+	ctx := context.Background()
+	client, err := pubsub.NewClient(ctx, cfg.Pubsub.Project)
+	if err != nil {
+		logrus.WithError(err).Fatal("unable to set up pubsub client")
+	}
+
+	topic := client.Topic(cfg.Pubsub.Topic)
+	exists, err := topic.Exists(ctx)
+	if err != nil {
+		logrus.WithError(err).Fatal("unable to configure topic")
+	}
+	if !exists {
+		e := fmt.Errorf("topic %v does not exist in %v", cfg.Pubsub.Topic, cfg.Pubsub.Project)
+		logrus.WithError(e).Fatal("topic does not exist")
+	}
+	sub := client.Subscription(cfg.Pubsub.Subscription)
+	err = sub.Receive(ctx, func(ctx context.Context, msg *pubsub.Message) {
+		var data map[string]interface{}
+		defer msg.Ack()
+		if err := json.Unmarshal(msg.Data, &data); err != nil {
+			logrus.WithError(err).Error("unable to process message")
+			return
+		}
+
+		go func(buildUrl, buildID string) {
+			crawler := h.crawlerCreator(h.database, h.config)
+			crawler.CrawlJenkins(buildUrl, buildID)
+		}(data["buildUrl"].(string), data["correlationId"].(string))
+	})
+	if err != nil {
+		logrus.WithError(err).Fatal("unrecoverable error from pubsub")
 	}
 }

@@ -15,6 +15,13 @@ type DatastoreConf struct {
 	Project   string
 }
 
+// PubsubConf holds the config values for Google PubSub
+type PubsubConf struct {
+	Subscription string
+	Project      string
+	Topic        string
+}
+
 // SQLConf holds the config values for SQL databases
 type SQLConf struct {
 	Username     string
@@ -41,6 +48,7 @@ type Config struct {
 
 	GoogleCloudDatastore DatastoreConf
 	PostgreSQL           SQLConf
+	Pubsub               PubsubConf
 
 	Crawler struct {
 		LogPattern string

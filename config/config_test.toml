@@ -15,3 +15,8 @@ project = "my-gcs-project"
 
 [crawler]
 logpattern = '''.*\[([\d{4}\-\d{2}\-\d{2}T\d{2}:\d{2}:\d{2}.\d*Z]*)\].*?\s(.*)$'''
+
+[Pubsub]
+subscription = "ale-subscription"
+project = "my-gcs-project"
+topic = "build-events-topic"
